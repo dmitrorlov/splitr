@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { PlusIcon, ServerIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { AddHost, DeleteHost, ListHosts } from '../../wailsjs/go/app/App'
 import type { entity } from '../../wailsjs/go/models'

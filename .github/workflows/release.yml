@@ -154,7 +154,7 @@ jobs:
       - name: Checkout homebrew tap
         uses: actions/checkout@v4
         with:
-          repository: dmitryorlov/homebrew-splitr
+          repository: dmitrorlov/homebrew-splitr
           path: homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 

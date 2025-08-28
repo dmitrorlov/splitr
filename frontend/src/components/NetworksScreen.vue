@@ -1,4 +1,13 @@
 <script lang="ts" setup>
+import {
+  ArrowPathIcon,
+  ArrowRightIcon,
+  CloudIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  TrashIcon,
+  XMarkIcon,
+} from '@heroicons/vue/24/outline'
 import { computed, onMounted, ref } from 'vue'
 import {
   AddNetwork,
@@ -501,9 +510,9 @@ onMounted(async () => {
                         :disabled="syncLoading || resetLoading"
                         :class="[
                             'p-1 rounded-full transition-colors',
-                            (syncLoading || resetLoading)
+                            syncLoading || resetLoading
                                 ? 'cursor-not-allowed opacity-40 text-gray-400'
-                                : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                : 'text-gray-400 hover:text-red-600 hover:bg-red-50',
                         ]"
                     >
                         <TrashIcon class="w-4 h-4" />
@@ -530,7 +539,7 @@ onMounted(async () => {
             @confirm="handleConfirm"
             @cancel="handleCancel"
         />
-        
+
         <!-- Reset Confirmation Dialog -->
         <ConfirmDialog
             ref="resetConfirmDialog"

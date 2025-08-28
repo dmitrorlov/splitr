@@ -45,7 +45,7 @@ jobs:
           PATH: "/usr/bin:/bin:/usr/sbin:/sbin:$(go env GOPATH)/bin:${{ env.PATH }}"
         run: |
           task ci:release
-          
+
           # Set the output filename for artifact upload
           OUTPUT_FILENAME="Splitr-${{ github.ref_name }}-macos-arm64.zip"
           echo "OUTPUT_FILENAME=$OUTPUT_FILENAME" >> $GITHUB_ENV
@@ -76,6 +76,7 @@ jobs:
           find artifacts/ -type f -exec ls -la {} \;
 
       - name: Create Release
+        id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: artifacts/*/*
@@ -88,3 +89,60 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-cask:
+    needs: create_release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
+
+      - name: Install Task
+        run: |
+          go install github.com/go-task/task/v3/cmd/task@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Get release SHA256 and download URL
+        id: sha
+        run: |
+          # Find the ARM64 ZIP file from release assets
+          ASSET_URL=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
+                     jq -r '.assets[] | select(.name | contains("macos-arm64.zip")) | .browser_download_url')
+
+          # Download the file temporarily to calculate SHA256
+          curl -L -o temp.zip "$ASSET_URL"
+          SHA256=$(shasum -a 256 temp.zip | cut -d' ' -f1)
+          rm temp.zip
+
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "download_url=$ASSET_URL" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: dmitryorlov/homebrew-splitr
+          path: homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Update Cask formula with Taskfile
+        env:
+          TAG: ${{ github.ref_name }}
+          SHA256: ${{ steps.sha.outputs.sha256 }}
+          DOWNLOAD_URL: ${{ steps.sha.outputs.download_url }}
+        run: |
+          cd homebrew-tap
+          task -d .. ci:update-cask
+
+      - name: Commit and push changes
+        run: |
+          cd homebrew-tap
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Casks/splitr.rb
+          git commit -m "Update Splitr to ${{ github.ref_name }}"
+          git push

@@ -110,9 +110,32 @@ jobs:
       - name: Get release SHA256 and download URL
         id: sha
         run: |
-          # Find the ARM64 ZIP file from release assets
-          ASSET_URL=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
-                     jq -r '.assets[] | select(.name | contains("macos-arm64.zip")) | .browser_download_url')
+          # Wait a moment for release to be fully available
+          sleep 10
+          
+          # Find the ARM64 ZIP file from release assets with retries
+          for i in {1..5}; do
+            echo "Attempt $i: Fetching release info..."
+            RESPONSE=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+            
+            # Check if response is valid JSON and not empty
+            if echo "$RESPONSE" | jq empty 2>/dev/null && [ "$(echo "$RESPONSE" | jq -r '.assets // empty | length')" -gt 0 ]; then
+              ASSET_URL=$(echo "$RESPONSE" | jq -r '.assets[] | select(.name | contains("macos-arm64.zip")) | .browser_download_url')
+              if [ "$ASSET_URL" != "null" ] && [ ! -z "$ASSET_URL" ]; then
+                echo "Found asset URL: $ASSET_URL"
+                break
+              fi
+            fi
+            
+            echo "No valid response or asset found, waiting 30 seconds..."
+            sleep 30
+          done
+          
+          if [ "$ASSET_URL" = "null" ] || [ -z "$ASSET_URL" ]; then
+            echo "Error: Could not find ARM64 asset after 5 attempts"
+            echo "Response was: $RESPONSE"
+            exit 1
+          fi
 
           # Download the file temporarily to calculate SHA256
           curl -L -o temp.zip "$ASSET_URL"

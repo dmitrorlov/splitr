@@ -1,4 +1,11 @@
 <script lang="ts" setup>
+import {
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  DocumentArrowDownIcon,
+  DocumentArrowUpIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
 import { ExportNetworkHosts, ImportNetworkHosts } from '../../wailsjs/go/app/App'
 import type { entity } from '../../wailsjs/go/models'
@@ -133,7 +140,12 @@ const copyToClipboard = async () => {
             >
                 <ArrowUpTrayIcon v-if="!showImportExport" class="w-4 h-4" />
                 <ArrowDownTrayIcon v-if="showImportExport" class="w-4 h-4" />
-                <span>{{ showImportExport ? 'Hide' : 'Show' }} Import/Export</span>
+                <span
+                    >{{
+                        showImportExport ? "Hide" : "Show"
+                    }}
+                    Import/Export</span
+                >
             </button>
         </div>
 
@@ -144,11 +156,14 @@ const copyToClipboard = async () => {
                 <div class="space-y-4">
                     <div class="flex items-center space-x-2">
                         <DocumentArrowUpIcon class="w-5 h-5 text-blue-600" />
-                        <h3 class="text-lg font-medium text-gray-900">Export Hosts</h3>
+                        <h3 class="text-lg font-medium text-gray-900">
+                            Export Hosts
+                        </h3>
                     </div>
-                    
+
                     <p class="text-sm text-gray-600">
-                        Export all hosts from this network to JSON format for backup or sharing.
+                        Export all hosts from this network to JSON format for
+                        backup or sharing.
                     </p>
 
                     <button
@@ -163,7 +178,9 @@ const copyToClipboard = async () => {
                     <!-- Export Result -->
                     <div v-if="exportData" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-700">Export Data:</span>
+                            <span class="text-sm font-medium text-gray-700"
+                                >Export Data:</span
+                            >
                             <button
                                 @click="copyToClipboard"
                                 class="text-xs text-blue-600 hover:text-blue-800"
@@ -183,16 +200,21 @@ const copyToClipboard = async () => {
                 <div class="space-y-4">
                     <div class="flex items-center space-x-2">
                         <DocumentArrowDownIcon class="w-5 h-5 text-green-600" />
-                        <h3 class="text-lg font-medium text-gray-900">Import Hosts</h3>
+                        <h3 class="text-lg font-medium text-gray-900">
+                            Import Hosts
+                        </h3>
                     </div>
-                    
+
                     <p class="text-sm text-gray-600">
-                        Import hosts from JSON format. Existing hosts will be skipped automatically.
+                        Import hosts from JSON format. Existing hosts will be
+                        skipped automatically.
                     </p>
 
                     <!-- File Upload -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Upload JSON File
                         </label>
                         <input
@@ -205,7 +227,9 @@ const copyToClipboard = async () => {
 
                     <!-- Manual Input -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Or Paste JSON Data
                         </label>
                         <textarea
@@ -238,8 +262,15 @@ const copyToClipboard = async () => {
                             <p>The JSON format should contain:</p>
                             <ul class="mt-1 list-disc list-inside">
                                 <li><code>export_date</code>: ISO timestamp</li>
-                                <li><code>network_id</code>: Source network ID (informational)</li>
-                                <li><code>hosts</code>: Array of host objects with <code>address</code> and optional <code>description</code></li>
+                                <li>
+                                    <code>network_id</code>: Source network ID
+                                    (informational)
+                                </li>
+                                <li>
+                                    <code>hosts</code>: Array of host objects
+                                    with <code>address</code> and optional
+                                    <code>description</code>
+                                </li>
                             </ul>
                         </div>
                     </div>

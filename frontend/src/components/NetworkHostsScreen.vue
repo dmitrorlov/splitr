@@ -1,4 +1,17 @@
 <script lang="ts" setup>
+import {
+  ArrowDownTrayIcon,
+  ArrowLeftIcon,
+  ArrowUpTrayIcon,
+  CheckCircleIcon,
+  ClipboardDocumentIcon,
+  ComputerDesktopIcon,
+  DocumentArrowDownIcon,
+  DocumentArrowUpIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+  TrashIcon,
+} from '@heroicons/vue/24/outline'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {
   AddNetworkHost,
@@ -493,8 +506,16 @@ onUnmounted(() => {
                     @click="toggleImportExport"
                     class="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                 >
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    <svg
+                        class="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd"
+                        />
                     </svg>
                 </button>
             </div>
@@ -503,8 +524,12 @@ onUnmounted(() => {
                 <!-- Export Section -->
                 <div class="space-y-4">
                     <div class="border-b border-gray-200 pb-2">
-                        <h4 class="text-md font-medium text-gray-900 flex items-center">
-                            <DocumentArrowUpIcon class="w-5 h-5 mr-2 text-blue-600" />
+                        <h4
+                            class="text-md font-medium text-gray-900 flex items-center"
+                        >
+                            <DocumentArrowUpIcon
+                                class="w-5 h-5 mr-2 text-blue-600"
+                            />
                             Export Hosts
                         </h4>
                         <p class="text-sm text-gray-600 mt-1">
@@ -523,21 +548,29 @@ onUnmounted(() => {
 
                     <div v-if="exportData" class="space-y-3">
                         <div class="border border-gray-300 rounded-md">
-                            <div class="bg-gray-50 px-3 py-2 border-b border-gray-300 flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-700">Exported Data:</span>
+                            <div
+                                class="bg-gray-50 px-3 py-2 border-b border-gray-300 flex items-center justify-between"
+                            >
+                                <span class="text-sm font-medium text-gray-700"
+                                    >Exported Data:</span
+                                >
                                 <div class="flex space-x-2">
                                     <button
                                         @click="copyExportData"
                                         class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
                                     >
-                                        <ClipboardDocumentIcon class="w-3 h-3 mr-1" />
+                                        <ClipboardDocumentIcon
+                                            class="w-3 h-3 mr-1"
+                                        />
                                         Copy
                                     </button>
                                     <button
                                         @click="downloadExportData"
                                         class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
                                     >
-                                        <ArrowDownTrayIcon class="w-3 h-3 mr-1" />
+                                        <ArrowDownTrayIcon
+                                            class="w-3 h-3 mr-1"
+                                        />
                                         Download
                                     </button>
                                 </div>
@@ -556,8 +589,12 @@ onUnmounted(() => {
                 <!-- Import Section -->
                 <div class="space-y-4">
                     <div class="border-b border-gray-200 pb-2">
-                        <h4 class="text-md font-medium text-gray-900 flex items-center">
-                            <DocumentArrowDownIcon class="w-5 h-5 mr-2 text-green-600" />
+                        <h4
+                            class="text-md font-medium text-gray-900 flex items-center"
+                        >
+                            <DocumentArrowDownIcon
+                                class="w-5 h-5 mr-2 text-green-600"
+                            />
                             Import Hosts
                         </h4>
                         <p class="text-sm text-gray-600 mt-1">
@@ -568,7 +605,9 @@ onUnmounted(() => {
                     <div class="space-y-3">
                         <!-- File Upload -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                            >
                                 Upload JSON File:
                             </label>
                             <input
@@ -581,7 +620,9 @@ onUnmounted(() => {
 
                         <!-- Manual Input -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                            >
                                 Or paste JSON data:
                             </label>
                             <textarea

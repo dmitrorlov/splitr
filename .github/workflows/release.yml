@@ -164,8 +164,10 @@ jobs:
           SHA256: ${{ steps.sha.outputs.sha256 }}
           DOWNLOAD_URL: ${{ steps.sha.outputs.download_url }}
         run: |
+          # Copy the Taskfile to homebrew-tap directory and run the task there
+          cp Taskfile.yml homebrew-tap/
           cd homebrew-tap
-          task -d .. ci:update-cask
+          task ci:update-cask
 
       - name: Commit and push changes
         run: |

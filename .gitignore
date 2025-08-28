@@ -11,11 +11,31 @@
 # Test binary, built with `go test -c`
 *.test
 
+.vscode
+.DS_Store
+.zed
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+coverage.html
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
 # Go workspace file
 go.work
+go.work.sum
+
+# env file
+.env
+
+# Wails
+build/bin
+node_modules
+frontend/dist
+
+# Build artifacts in new structure
+build/bin/
+
+# Task runner cache
+.task/

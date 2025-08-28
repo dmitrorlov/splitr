@@ -1,0 +1,90 @@
+name: Release Splitr
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24.6"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install Task and setup PATH
+        run: |
+          go install github.com/go-task/task/v3/cmd/task@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Extract author info
+        id: extract
+        run: |
+          # Extract author info from wails.json
+          AUTHOR_NAME=$(jq -r '.author.name' wails.json)
+          AUTHOR_EMAIL=$(jq -r '.author.email' wails.json)
+          echo "author_name=$AUTHOR_NAME" >> $GITHUB_OUTPUT
+          echo "author_email=$AUTHOR_EMAIL" >> $GITHUB_OUTPUT
+          echo "Building with Version: ${{ github.ref_name }}, Author: $AUTHOR_NAME, Email: $AUTHOR_EMAIL"
+
+      - name: Build release with Taskfile
+        env:
+          VERSION: ${{ github.ref_name }}
+          AUTHOR_NAME: ${{ steps.extract.outputs.author_name }}
+          AUTHOR_EMAIL: ${{ steps.extract.outputs.author_email }}
+          PATH: "/usr/bin:/bin:/usr/sbin:/sbin:$(go env GOPATH)/bin:${{ env.PATH }}"
+        run: |
+          task ci:release
+          
+          # Set the output filename for artifact upload
+          OUTPUT_FILENAME="Splitr-${{ github.ref_name }}-macos-arm64.zip"
+          echo "OUTPUT_FILENAME=$OUTPUT_FILENAME" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_FILENAME }}
+          path: build/bin/${{ env.OUTPUT_FILENAME }}
+
+  create_release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find artifacts/ -type f -exec ls -la {} \;
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*/*
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: |
+            ### Changes
+            See the commit history for details about what's new in this release.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

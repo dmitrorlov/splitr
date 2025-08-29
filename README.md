@@ -59,7 +59,7 @@ The app also includes a built-in update checker accessible from the menu: **Spli
 ## Features
 
 - Automatically detects available L2TP VPN connections on your Mac
-- Network and hosts management
+- Network and host management
 - Sync routing configuration with active VPN connections
 - Reset routing rules when needed
 - Export/Import network host configurations as JSON for easy backup and sharing

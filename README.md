@@ -46,7 +46,7 @@ brew upgrade splitr
 If you got warning that latest version is already installed, run this before:
 
 ```bash
-brew update splitr
+brew update
 ```
 
 ### Manual Installation Users

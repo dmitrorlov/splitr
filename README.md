@@ -43,6 +43,12 @@ If you prefer not to use Homebrew:
 brew upgrade splitr
 ```
 
+If you got warning that latest version is already installed, run this before:
+
+```bash
+brew update splitr
+```
+
 ### Manual Installation Users
 1. Download the new version
 2. Replace the old app in `/Applications`

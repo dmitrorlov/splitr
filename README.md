@@ -11,10 +11,10 @@ The easiest way to install Splitr is using Homebrew:
 **Currently (using custom tap):**
 ```bash
 # One-liner installation  
-brew install --cask dmitryorlov/splitr/splitr
+brew install --cask dmitrorlov/splitr/splitr
 
 # Or step by step
-brew tap dmitryorlov/splitr
+brew tap dmitrorlov/splitr
 brew install --cask splitr
 ```
 
@@ -28,7 +28,7 @@ brew install --cask splitr
 
 If you prefer not to use Homebrew:
 
-1. Download the latest release from [GitHub Releases](https://github.com/dmitryorlov/splitr/releases)
+1. Download the latest release from [GitHub Releases](https://github.com/dmitrorlov/splitr/releases)
 2. Extract the ZIP file
 3. Move `Splitr.app` to your `/Applications` folder
 4. Remove quarantine attributes:
@@ -90,8 +90,8 @@ This project is built with:
 
 ## Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/dmitryorlov/splitr/issues)
-- 💡 **Feature Requests**: [GitHub Issues](https://github.com/dmitryorlov/splitr/issues)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/dmitrorlov/splitr/issues)
+- 💡 **Feature Requests**: [GitHub Issues](https://github.com/dmitrorlov/splitr/issues)
 
 ## License
 

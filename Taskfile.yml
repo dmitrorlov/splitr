@@ -459,7 +459,7 @@ tasks:
         url "${DOWNLOAD_URL}"
         name "Splitr"
         desc "MacOS application for advanced L2TP VPN split tunneling."
-        homepage "https://github.com/dmitryorlov/splitr"
+        homepage "https://github.com/dmitrorlov/splitr"
 
         # Requires macOS 11.0 or later (Big Sur)
         depends_on macos: ">= :big_sur"

@@ -13,10 +13,25 @@
 - Built-in update checker with GitHub integration
 - Clean UI with responsive design
 
-## Important
+## Quickstart
 
-To make your network hosts routing work properly, you need to manually uncheck the "Send all traffic over VPN connection" checkbox in the VPN settings screen.
-![VPN Settings](assets/settings.png)
+<p align="center">
+<img src="assets/settings.png" width="500px" alt="Send all traffic over VPN"/>
+</p>
+
+1. **Configure your VPN and disable "Send all traffic over VPN"**
+
+3. **Install Splitr** using one of the methods from the [Installation](#installation) section
+
+4. **Launch Splitr** from Applications and add your network hosts or IP ranges
+
+5. **Connect your VPN** and Splitr will automatically manage the routing rules
+
+6. **Use the Sync button**: If routing is not applied correctly, click the "Sync" button in Splitr to refresh the routing configuration
+
+7. **Reconnect VPN if needed**: If routing issues persist, disconnect and reconnect your VPN connection to ensure proper route establishment
+
+That's it! Your specified hosts will now route through the VPN while other traffic uses your regular connection.
 
 ## Installation
 

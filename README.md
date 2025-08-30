@@ -13,6 +13,11 @@
 - Built-in update checker with GitHub integration
 - Clean UI with responsive design
 
+## Important
+
+To make your network hosts routing work properly, you need to manually uncheck the "Send all traffic over VPN connection" checkbox in the VPN settings screen.
+![VPN Settings](assets/settings.png)
+
 ## Installation
 
 ### Homebrew (Recommended)
@@ -66,11 +71,6 @@ brew update
 3. Run the `xattr` command again
 
 The app also includes a built-in update checker accessible from the menu: **Splitr → Check for Updates...**
-
-## Requirements
-
-- macOS 11.0 (Big Sur) or later
-- Apple Silicon (ARM64) Mac
 
 ## Development
 

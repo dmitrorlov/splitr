@@ -3,6 +3,11 @@
 <h3 align="center">MacOS application for advanced L2TP VPN split tunneling</h3>
 </p>
 
+<p align="center">
+<a href="https://github.com/dmitrorlov/splitr/releases"><img src="https://img.shields.io/github/v/release/dmitrorlov/splitr?include_prereleases&style=flat-square" alt="Github release"></a>
+<a href="https://goreportcard.com/badge/github.com/dmitrorlov/splitr"><img alt="Go report card" src="https://goreportcard.com/badge/github.com/dmitrorlov/splitr?style=flat-square" /></a>
+</p>
+
 ## Features
 
 - Automatically detects available L2TP VPN connections on your Mac

@@ -58,11 +58,13 @@ The app also includes a built-in update checker accessible from the menu: **Spli
 
 ## Features
 
-- Network routing management
-- VPN service integration
-- Host management and organization
-- Export/import functionality
-- Built-in update checking
+- Automatically detects available L2TP VPN connections on your Mac
+- Network and host management
+- Sync routing configuration with active VPN connections
+- Reset routing rules when needed
+- Export/Import network host configurations as JSON for easy backup and sharing
+- Built-in update checker with GitHub integration
+- Clean UI with responsive design
 
 ## Requirements
 

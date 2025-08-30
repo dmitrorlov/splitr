@@ -1,6 +1,17 @@
-# Splitr
+<p align="center">
+<img src="assets/main.png" width="400px" alt="Splitr" />
+<h3 align="center">MacOS application for advanced L2TP VPN split tunneling</h3>
+</p>
 
-MacOS application for advanced L2TP VPN split tunneling.
+## Features
+
+- Automatically detects available L2TP VPN connections on your Mac
+- Network and host management
+- Sync routing configuration with active VPN connections
+- Reset routing rules when needed
+- Export/Import network host configurations as JSON for easy backup and sharing
+- Built-in update checker with GitHub integration
+- Clean UI with responsive design
 
 ## Installation
 
@@ -56,16 +67,6 @@ brew update
 
 The app also includes a built-in update checker accessible from the menu: **Splitr → Check for Updates...**
 
-## Features
-
-- Automatically detects available L2TP VPN connections on your Mac
-- Network and host management
-- Sync routing configuration with active VPN connections
-- Reset routing rules when needed
-- Export/Import network host configurations as JSON for easy backup and sharing
-- Built-in update checker with GitHub integration
-- Clean UI with responsive design
-
 ## Requirements
 
 - macOS 11.0 (Big Sur) or later
@@ -88,7 +89,7 @@ This project is built with:
 
 2. Run in development mode:
    ```bash
-   wails dev
+   task dev
    ```
 
 3. Build for production:

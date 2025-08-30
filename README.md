@@ -97,17 +97,19 @@ This project is built with:
 
 ### Building from Source
 
-1. Install dependencies:
+1. Install [Task](https://taskfile.dev/) if you don't have it. Check [Task's installation instructions](https://taskfile.dev/installation/).
+
+2. Install dependencies:
    ```bash
-   task setup  # or use npm install in frontend/ and go mod download
+   task setup
    ```
 
-2. Run in development mode:
+3. Run in development mode:
    ```bash
    task dev
    ```
 
-3. Build for production:
+4. Build for production:
    ```bash
    task build
    ```

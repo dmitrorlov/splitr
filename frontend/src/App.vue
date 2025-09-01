@@ -130,7 +130,7 @@ onMounted(() => {
                     <h1 class="text-4xl font-bold text-gray-900">Splitr</h1>
                 </div>
                 <p class="text-gray-600">
-                    L2TP VPN Split Tunneling Controller
+                    L2TP VPN Split Tunneling
                 </p>
             </div>
 

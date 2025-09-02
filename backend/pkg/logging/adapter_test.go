@@ -1,5 +1,3 @@
-//go:build darwin
-
 package logging
 
 import (
@@ -391,17 +389,4 @@ func TestWailsAdapter_LargeMessages(t *testing.T) {
 
 	logContent := string(content)
 	assert.Contains(t, logContent, largeMessage)
-}
-
-func TestBuildConstraint(t *testing.T) {
-	// Read the adapter.go file and verify it has the build constraint
-	content, err := os.ReadFile("adapter.go")
-	require.NoError(t, err)
-
-	fileContent := string(content)
-	lines := strings.Split(fileContent, "\n")
-
-	// Check that the first line contains the build constraint
-	assert.NotEmpty(t, lines)
-	assert.Contains(t, lines[0], "//go:build darwin")
 }

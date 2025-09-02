@@ -12,7 +12,7 @@ concurrency:
 jobs:
   lint-and-test:
     name: Lint and Test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     # Skip draft PRs unless they are marked ready for review
     if: github.event.pull_request.draft == false

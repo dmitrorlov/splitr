@@ -1,0 +1,132 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Cancel in-progress runs when a new commit is pushed to save resources
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: macos-latest
+
+    # Skip draft PRs unless they are marked ready for review
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Shallow clone for faster checkout
+          fetch-depth: 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.0"
+          # Enable Go module caching
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          # Enable npm caching
+          cache: "npm"
+          cache-dependency-path: "frontend/package-lock.json"
+
+      - name: Install Task
+        run: |
+          go install github.com/go-task/task/v3/cmd/task@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Cache Go tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/bin/golangci-lint
+            ~/go/bin/mockgen
+            ~/go/bin/migrate
+          key: go-tools-${{ runner.os }}-${{ hashFiles('Taskfile.yml') }}
+          restore-keys: |
+            go-tools-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          # Install frontend dependencies (npm install)
+          task install:frontend
+
+          # Install required Go tools for linting
+          task install:golangci-lint
+
+      - name: Run linters
+        id: lint
+        run: |
+          echo "🔍 Running linters (backend + frontend)..."
+          task lint
+
+      - name: Run tests
+        id: test
+        run: |
+          echo "🧪 Running tests with race detector..."
+          task test
+
+      - name: Generate test coverage
+        if: success()
+        continue-on-error: true
+        run: |
+          echo "📊 Generating test coverage report..."
+          task test:cover
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 📋 CI Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Linting | ${{ steps.lint.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Testing | ${{ steps.test.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Status:** ${{ job.status == 'success' && '✅ All checks passed!' || '❌ Some checks failed' }}" >> $GITHUB_STEP_SUMMARY
+
+  # Separate lightweight job for draft PRs
+  draft-pr-check:
+    name: Draft PR Quick Check
+    runs-on: ubuntu-latest
+
+    # Only run on draft PRs
+    if: github.event.pull_request.draft == true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.0"
+          cache: true
+
+      - name: Quick validation
+        run: |
+          echo "🚀 Running quick checks for draft PR..."
+          echo ""
+          echo "Verifying Go modules..."
+          go mod verify
+          echo "✅ Go modules verified"
+          echo ""
+          echo "Running go vet..."
+          go vet ./...
+          echo "✅ Go vet passed"
+          echo ""
+          echo "🎯 Draft PR checks completed!"
+          echo ""
+          echo "💡 **Next steps:** Mark this PR as 'Ready for review' to run full linting and testing suite."

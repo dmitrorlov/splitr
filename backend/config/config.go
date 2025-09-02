@@ -14,9 +14,15 @@ type Config struct {
 	GitHub GitHub
 }
 
+type envReader func(interface{}) error
+
 func New() (*Config, error) {
+	return newWithEnvReader(cleanenv.ReadEnv)
+}
+
+func newWithEnvReader(readEnv envReader) (*Config, error) {
 	cfg := &Config{}
-	err := cleanenv.ReadEnv(cfg)
+	err := readEnv(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read env: %w", err)
 	}

@@ -9,13 +9,15 @@ dotenv:
   - ".env"
   - ".env.local"
 
-# Global environment variables
+  # Global environment variables
 env:
   # Go build flags and configuration
   GOFLAGS: '{{default "-mod=readonly" .GOFLAGS}}'
   GOARCH: '{{default "amd64" .GOARCH}}'
   GOOS: '{{default "darwin" .GOOS}}'
   CGO_ENABLED: '{{default "1" .CGO_ENABLED}}'
+  # CGO flags to suppress macOS linker warnings
+  CGO_LDFLAGS: '{{default "-Wl,-w" .CGO_LDFLAGS}}'
 
   # Wails environment configuration
   WAILS_ENV: '{{default "development" .WAILS_ENV}}'

@@ -1,8 +1,8 @@
 module github.com/dmitrorlov/splitr
 
-go 1.24
+go 1.25
 
-toolchain go1.24.4
+toolchain go1.25.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4

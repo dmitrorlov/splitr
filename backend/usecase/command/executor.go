@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
-	"os/exec"
 	"strings"
 
 	"github.com/dmitrorlov/splitr/backend/entity"
 	"github.com/dmitrorlov/splitr/backend/pkg/errs"
+	"github.com/dmitrorlov/splitr/backend/usecase"
 )
 
 const (
@@ -27,6 +26,7 @@ const (
 
 type Executor struct {
 	outputParser *outputParser
+	cmdRunner    usecase.CommandRunner
 
 	cmdListVPNArgs                    []string
 	cmdGetDefaultInterfaceArgs        []string
@@ -37,8 +37,13 @@ type Executor struct {
 }
 
 func NewExecutor() *Executor {
+	return NewExecutorWithRunner(&defaultCommandRunner{})
+}
+
+func NewExecutorWithRunner(cmdRunner usecase.CommandRunner) *Executor {
 	return &Executor{
 		outputParser:                      newOutputParser(),
+		cmdRunner:                         cmdRunner,
 		cmdListVPNArgs:                    []string{"--nc", "list"},
 		cmdGetDefaultInterfaceArgs:        []string{"get", "default"},
 		cmdListNetworkServiceArgs:         []string{"-listnetworkserviceorder"},
@@ -49,10 +54,7 @@ func NewExecutor() *Executor {
 }
 
 func (e *Executor) GetDefaultNetworkInterface(ctx context.Context) (entity.NetworkInterface, error) {
-	output, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdRoute,
-		Args:       e.cmdGetDefaultInterfaceArgs,
-	})
+	output, err := e.cmdRunner.Run(ctx, cmdRoute, e.cmdGetDefaultInterfaceArgs...)
 	if err != nil {
 		return "", fmt.Errorf("failed to sync execute command: %w", err)
 	}
@@ -82,10 +84,7 @@ func (e *Executor) GetNetworkServiceByNetworkInterface(
 	ctx context.Context,
 	networkInterface entity.NetworkInterface,
 ) (entity.NetworkService, error) {
-	commandOutput, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdNetworkSetup,
-		Args:       e.cmdListNetworkServiceArgs,
-	})
+	commandOutput, err := e.cmdRunner.Run(ctx, cmdNetworkSetup, e.cmdListNetworkServiceArgs...)
 	if err != nil {
 		return "", fmt.Errorf("failed to sync execute command: %w", err)
 	}
@@ -124,10 +123,10 @@ func (e *Executor) GetNetworkInfoByNetworkService(
 	ctx context.Context,
 	networkService entity.NetworkService,
 ) (*entity.NetworkInfo, error) {
-	commandOutput, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdNetworkSetup,
-		Args:       append(e.cmdGetNetworkServiceInfoArgs, string(networkService)),
-	})
+	args := make([]string, 0, len(e.cmdGetNetworkServiceInfoArgs)+1)
+	args = append(args, e.cmdGetNetworkServiceInfoArgs...)
+	args = append(args, string(networkService))
+	commandOutput, err := e.cmdRunner.Run(ctx, cmdNetworkSetup, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sync execute command: %w", err)
 	}
@@ -169,10 +168,7 @@ func (e *Executor) SetNetworkAdditionalRoutes(
 		}...)
 	}
 
-	_, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdNetworkSetup,
-		Args:       args,
-	})
+	_, err := e.cmdRunner.Run(ctx, cmdNetworkSetup, args...)
 	if err != nil {
 		return fmt.Errorf("failed to sync execute command: %w", err)
 	}
@@ -181,15 +177,12 @@ func (e *Executor) SetNetworkAdditionalRoutes(
 }
 
 func (e *Executor) ListVPN(ctx context.Context) ([]entity.VPNService, error) {
-	output, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdSCUtil,
-		Args:       e.cmdListVPNArgs,
-	})
+	output, err := e.cmdRunner.Run(ctx, cmdSCUtil, e.cmdListVPNArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sync execute command: %w", err)
 	}
 
-	var vpnNames []entity.VPNService
+	vpnNames := make([]entity.VPNService, 0)
 	for _, line := range output {
 		if !strings.Contains(line, substringL2tpNetworkType) {
 			continue
@@ -207,10 +200,7 @@ func (e *Executor) ListVPN(ctx context.Context) ([]entity.VPNService, error) {
 }
 
 func (e *Executor) GetCurrentVPN(ctx context.Context) (entity.VPNService, error) {
-	output, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdSCUtil,
-		Args:       e.cmdListVPNArgs,
-	})
+	output, err := e.cmdRunner.Run(ctx, cmdSCUtil, e.cmdListVPNArgs...)
 	if err != nil {
 		return "", fmt.Errorf("failed to sync execute command: %w", err)
 	}
@@ -232,28 +222,13 @@ func (e *Executor) GetCurrentVPN(ctx context.Context) (entity.VPNService, error)
 }
 
 func (e *Executor) OpenInFinder(ctx context.Context, path string) error {
-	_, err := e.syncExecuteCommand(ctx, &entity.Command{
-		Executable: cmdOpen,
-		Args:       append(e.cmdOpenInFinderArgs, path),
-	})
+	args := make([]string, 0, len(e.cmdOpenInFinderArgs)+1)
+	args = append(args, e.cmdOpenInFinderArgs...)
+	args = append(args, path)
+	_, err := e.cmdRunner.Run(ctx, cmdOpen, args...)
 	if err != nil {
 		return fmt.Errorf("failed to sync execute command: %w", err)
 	}
 
 	return nil
-}
-
-func (e *Executor) syncExecuteCommand(
-	ctx context.Context,
-	command *entity.Command,
-) ([]string, error) {
-	slog.InfoContext(ctx, fmt.Sprintf("executing command: %s", command))
-
-	cmd := exec.CommandContext(ctx, command.Executable, command.Args...) //nolint:gosec // command is not user input
-	output, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute command: %w", err)
-	}
-
-	return strings.Split(string(output), "\n"), nil
 }

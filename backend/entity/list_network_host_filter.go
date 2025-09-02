@@ -1,8 +1,8 @@
 package entity
 
 type ListNetworkHostFilter struct {
-	ID        []uint64
-	NetworkID []uint64
-	Address   []string
-	Search    string
+	ID        []uint64 `json:"id,omitempty"`
+	NetworkID []uint64 `json:"network_id,omitempty"`
+	Address   []string `json:"address,omitempty"`
+	Search    string   `json:"search,omitempty"`
 }

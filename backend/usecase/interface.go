@@ -26,6 +26,10 @@ type CommandExecutor interface {
 	OpenInFinder(ctx context.Context, path string) error
 }
 
+type CommandRunner interface {
+	Run(ctx context.Context, name string, args ...string) ([]string, error)
+}
+
 type Host interface {
 	Add(ctx context.Context, host *entity.Host) (*entity.Host, error)
 	List(ctx context.Context, filter *entity.ListHostFilter) ([]*entity.Host, error)

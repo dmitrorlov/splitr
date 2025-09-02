@@ -12,7 +12,7 @@ concurrency:
 jobs:
   lint-and-test:
     name: Lint and Test
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     # Skip draft PRs unless they are marked ready for review
     if: github.event.pull_request.draft == false
@@ -80,13 +80,6 @@ jobs:
         run: |
           echo "🧪 Running tests with race detector..."
           task test
-
-      - name: Generate test coverage
-        if: success()
-        continue-on-error: true
-        run: |
-          echo "📊 Generating test coverage report..."
-          task test:cover
 
       - name: Summary
         if: always()

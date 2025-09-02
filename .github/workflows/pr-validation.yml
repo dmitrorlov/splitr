@@ -46,7 +46,7 @@ jobs:
         run: go mod download
 
       - name: Build Go packages
-        run: go build ./...
+        run: go build ./backend/...
 
       - name: Run linting
         run: task lint

@@ -64,6 +64,11 @@ jobs:
           # Install required Go tools for linting
           task install:golangci-lint
 
+      - name: Build frontend
+        run: |
+          echo "🏗️ Building frontend (required for Go embed)..."
+          task build:frontend
+
       - name: Run linters
         id: lint
         run: |

@@ -96,7 +96,7 @@ The app also includes a built-in update checker accessible from the menu: **Spli
 
 This project is built with:
 - [Wails v2](https://wails.io/) - Go + Web frontend framework
-- Go 1.24+ backend
+- Go 1.25+ backend
 - TypeScript frontend
 - SQLite database
 

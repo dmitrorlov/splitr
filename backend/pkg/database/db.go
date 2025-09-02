@@ -29,19 +29,21 @@ type Database struct {
 	ctxGetter *trmSqlx.CtxGetter
 }
 
+type pathGetter func(string) (string, error)
+
 // New creates a new database connection and applies migrations.
 func New(appName string, migrationsFS embed.FS) (*Database, error) {
-	return newDatabase(appName, &migrationsFS)
+	return newDatabaseWithPathGetter(appName, &migrationsFS, getMacOSAppDataPath)
 }
 
 // NewForTesting creates a database connection without applying migrations
 // This is useful for testing against an existing database.
 func NewForTesting(appName string) (*Database, error) {
-	return newDatabase(appName, nil)
+	return newDatabaseWithPathGetter(appName, nil, getMacOSAppDataPath)
 }
 
-func newDatabase(appName string, migrationsFS *embed.FS) (*Database, error) {
-	sourcePath, err := getMacOSAppDataPath(appName)
+func newDatabaseWithPathGetter(appName string, migrationsFS *embed.FS, getPath pathGetter) (*Database, error) {
+	sourcePath, err := getPath(appName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get macOS app data path: %w", err)
 	}

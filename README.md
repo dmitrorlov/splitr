@@ -1,6 +1,42 @@
-# Splitr
+<p align="center">
+<img src="assets/main.png" width="400px" alt="Splitr" />
+<h3 align="center">MacOS application for advanced L2TP VPN split tunneling</h3>
+</p>
 
-MacOS application for advanced L2TP VPN split tunneling.
+<p align="center">
+<a href="https://github.com/dmitrorlov/splitr/releases"><img src="https://img.shields.io/github/v/release/dmitrorlov/splitr?include_prereleases&style=flat-square" alt="Github release"></a>
+<a href="https://goreportcard.com/badge/github.com/dmitrorlov/splitr"><img alt="Go report card" src="https://goreportcard.com/badge/github.com/dmitrorlov/splitr?style=flat-square" /></a>
+</p>
+
+## Features
+
+- Automatically detects available L2TP VPN connections on your Mac
+- Network and host management
+- Sync routing configuration with active VPN connections
+- Reset routing rules when needed
+- Export/Import network host configurations as JSON for easy backup and sharing
+- Built-in update checker with GitHub integration
+- Clean UI with responsive design
+
+## Quickstart
+
+<p align="center">
+<img src="assets/settings.png" width="500px" alt="Send all traffic over VPN"/>
+</p>
+
+1. **Configure your VPN and disable "Send all traffic over VPN"**
+
+3. **Install Splitr** using one of the methods from the [Installation](#installation) section
+
+4. **Launch Splitr** from Applications and add your network hosts or IP ranges
+
+5. **Connect your VPN** and Splitr will automatically manage the routing rules
+
+6. **Use the Sync button**: If routing is not applied correctly, click the "Sync" button in Splitr to refresh the routing configuration
+
+7. **Reconnect VPN if needed**: If routing issues persist, disconnect and reconnect your VPN connection to ensure proper route establishment
+
+That's it! Your specified hosts will now route through the VPN while other traffic uses your regular connection.
 
 ## Installation
 
@@ -11,10 +47,10 @@ The easiest way to install Splitr is using Homebrew:
 **Currently (using custom tap):**
 ```bash
 # One-liner installation  
-brew install --cask dmitrorlov/splitr/splitr
+brew install --cask dmitrorlov/tap/splitr
 
 # Or step by step
-brew tap dmitrorlov/splitr
+brew tap dmitrorlov/tap
 brew install --cask splitr
 ```
 
@@ -56,40 +92,29 @@ brew update
 
 The app also includes a built-in update checker accessible from the menu: **Splitr → Check for Updates...**
 
-## Features
-
-- Network routing management
-- VPN service integration
-- Host management and organization
-- Export/import functionality
-- Built-in update checking
-
-## Requirements
-
-- macOS 11.0 (Big Sur) or later
-- Apple Silicon (ARM64) Mac
-
 ## Development
 
 This project is built with:
 - [Wails v2](https://wails.io/) - Go + Web frontend framework
-- Go 1.24+ backend
+- Go 1.25+ backend
 - TypeScript frontend
 - SQLite database
 
 ### Building from Source
 
-1. Install dependencies:
+1. Install [Task](https://taskfile.dev/) if you don't have it. Check [Task's installation instructions](https://taskfile.dev/installation/).
+
+2. Install dependencies:
    ```bash
-   task setup  # or use npm install in frontend/ and go mod download
+   task setup
    ```
 
-2. Run in development mode:
+3. Run in development mode:
    ```bash
-   wails dev
+   task dev
    ```
 
-3. Build for production:
+4. Build for production:
    ```bash
    task build
    ```

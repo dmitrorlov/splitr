@@ -144,6 +144,50 @@ func (mr *MockCommandExecutorMockRecorder) SetNetworkAdditionalRoutes(ctx, netwo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetNetworkAdditionalRoutes", reflect.TypeOf((*MockCommandExecutor)(nil).SetNetworkAdditionalRoutes), ctx, network, networkHostSetupList)
 }
 
+// MockCommandRunner is a mock of CommandRunner interface.
+type MockCommandRunner struct {
+	ctrl     *gomock.Controller
+	recorder *MockCommandRunnerMockRecorder
+	isgomock struct{}
+}
+
+// MockCommandRunnerMockRecorder is the mock recorder for MockCommandRunner.
+type MockCommandRunnerMockRecorder struct {
+	mock *MockCommandRunner
+}
+
+// NewMockCommandRunner creates a new mock instance.
+func NewMockCommandRunner(ctrl *gomock.Controller) *MockCommandRunner {
+	mock := &MockCommandRunner{ctrl: ctrl}
+	mock.recorder = &MockCommandRunnerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCommandRunner) EXPECT() *MockCommandRunnerMockRecorder {
+	return m.recorder
+}
+
+// Run mocks base method.
+func (m *MockCommandRunner) Run(ctx context.Context, name string, args ...string) ([]string, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, name}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Run", varargs...)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Run indicates an expected call of Run.
+func (mr *MockCommandRunnerMockRecorder) Run(ctx, name any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, name}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockCommandRunner)(nil).Run), varargs...)
+}
+
 // MockHost is a mock of Host interface.
 type MockHost struct {
 	ctrl     *gomock.Controller

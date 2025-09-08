@@ -919,6 +919,680 @@ func TestUseCase_ImportByNetworkIDFromJSON(t *testing.T) {
 	}
 }
 
+func TestUseCase_Add(t *testing.T) {
+	tests := []struct {
+		name          string
+		networkHost   *entity.NetworkHost
+		setupMocks    func(*mock_storage.MockNetworkHost, *mock_usecase.MockNetworkHostSetup, *mock_trm.MockManager)
+		expectedError string
+		expectedHost  *entity.NetworkHost
+	}{
+		{
+			name: "successfully add network host",
+			networkHost: &entity.NetworkHost{
+				NetworkID:   1,
+				Address:     "192.168.1.100",
+				Description: stringPtr("Web server"),
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, mockNetworkHostSetupUC *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock successful storage add
+				addedHost := &entity.NetworkHost{
+					ID:          1,
+					NetworkID:   1,
+					Address:     "192.168.1.100",
+					Description: stringPtr("Web server"),
+				}
+				mockNetworkHostStorage.EXPECT().
+					Add(gomock.Any(), gomock.Any()).
+					Return(addedHost, nil)
+
+				// Mock successful sync
+				mockNetworkHostSetupUC.EXPECT().
+					SyncByNetworkID(gomock.Any(), uint64(1)).
+					Return(nil)
+			},
+			expectedHost: &entity.NetworkHost{
+				ID:          1,
+				NetworkID:   1,
+				Address:     "192.168.1.100",
+				Description: stringPtr("Web server"),
+			},
+		},
+		{
+			name: "successfully add network host without description",
+			networkHost: &entity.NetworkHost{
+				NetworkID: 2,
+				Address:   "example.com",
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, mockNetworkHostSetupUC *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock successful storage add
+				addedHost := &entity.NetworkHost{
+					ID:        10,
+					NetworkID: 2,
+					Address:   "example.com",
+				}
+				mockNetworkHostStorage.EXPECT().
+					Add(gomock.Any(), gomock.Any()).
+					Return(addedHost, nil)
+
+				// Mock successful sync
+				mockNetworkHostSetupUC.EXPECT().
+					SyncByNetworkID(gomock.Any(), uint64(2)).
+					Return(nil)
+			},
+			expectedHost: &entity.NetworkHost{
+				ID:        10,
+				NetworkID: 2,
+				Address:   "example.com",
+			},
+		},
+		{
+			name: "error - storage add fails",
+			networkHost: &entity.NetworkHost{
+				NetworkID: 3,
+				Address:   "test.com",
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, _ *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock storage add failure
+				mockNetworkHostStorage.EXPECT().
+					Add(gomock.Any(), gomock.Any()).
+					Return(nil, errors.New("database insert failed"))
+			},
+			expectedError: "failed to add network host: database insert failed",
+		},
+		{
+			name: "error - sync fails after successful add",
+			networkHost: &entity.NetworkHost{
+				NetworkID: 4,
+				Address:   "sync.fail.com",
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, mockNetworkHostSetupUC *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock successful storage add
+				addedHost := &entity.NetworkHost{
+					ID:        20,
+					NetworkID: 4,
+					Address:   "sync.fail.com",
+				}
+				mockNetworkHostStorage.EXPECT().
+					Add(gomock.Any(), gomock.Any()).
+					Return(addedHost, nil)
+
+				// Mock sync failure
+				mockNetworkHostSetupUC.EXPECT().
+					SyncByNetworkID(gomock.Any(), uint64(4)).
+					Return(errors.New("sync service unavailable"))
+			},
+			expectedError: "failed to sync network host setup: sync service unavailable",
+		},
+		{
+			name: "error - transaction fails",
+			networkHost: &entity.NetworkHost{
+				NetworkID: 5,
+				Address:   "tx.fail.com",
+			},
+			setupMocks: func(_ *mock_storage.MockNetworkHost, _ *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Setup transaction failure
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					Return(errors.New("transaction failed"))
+			},
+			expectedError: "failed to apply transaction: transaction failed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			// Create mocks
+			mockTrm := mock_trm.NewMockManager(ctrl)
+			mockNetworkHostSetupUC := mock_usecase.NewMockNetworkHostSetup(ctrl)
+			mockNetworkStorage := mock_storage.NewMockNetwork(ctrl)
+			mockNetworkHostStorage := mock_storage.NewMockNetworkHost(ctrl)
+
+			// Setup mocks
+			tt.setupMocks(mockNetworkHostStorage, mockNetworkHostSetupUC, mockTrm)
+
+			// Create use case
+			useCase := New(
+				mockTrm,
+				mockNetworkHostSetupUC,
+				mockNetworkStorage,
+				mockNetworkHostStorage,
+			)
+
+			// Execute the method
+			result, err := useCase.Add(context.Background(), tt.networkHost)
+
+			// Assert results
+			if tt.expectedError != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+				assert.Nil(t, result)
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, result)
+				assert.Equal(t, tt.expectedHost.ID, result.ID)
+				assert.Equal(t, tt.expectedHost.NetworkID, result.NetworkID)
+				assert.Equal(t, tt.expectedHost.Address, result.Address)
+				if tt.expectedHost.Description != nil {
+					require.NotNil(t, result.Description)
+					assert.Equal(t, *tt.expectedHost.Description, *result.Description)
+				} else {
+					assert.Nil(t, result.Description)
+				}
+			}
+		})
+	}
+}
+
+// stringPtr is a helper function to create string pointers for tests.
+func stringPtr(s string) *string {
+	return &s
+}
+
+func TestUseCase_List(t *testing.T) {
+	tests := []struct {
+		name           string
+		filter         *entity.ListNetworkHostFilter
+		setupMocks     func(*mock_storage.MockNetworkHost)
+		expectedResult []*entity.NetworkHost
+		expectedError  string
+	}{
+		{
+			name:   "successfully list all hosts with empty filter",
+			filter: &entity.ListNetworkHostFilter{},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:          1,
+						NetworkID:   1,
+						Address:     "192.168.1.100",
+						Description: stringPtr("Web server"),
+					},
+					{
+						ID:        2,
+						NetworkID: 2,
+						Address:   "example.com",
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{}).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:          1,
+					NetworkID:   1,
+					Address:     "192.168.1.100",
+					Description: stringPtr("Web server"),
+				},
+				{
+					ID:        2,
+					NetworkID: 2,
+					Address:   "example.com",
+				},
+			},
+		},
+		{
+			name: "successfully filter by network ID",
+			filter: &entity.ListNetworkHostFilter{
+				NetworkID: []uint64{1},
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:        1,
+						NetworkID: 1,
+						Address:   "192.168.1.100",
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{
+						NetworkID: []uint64{1},
+					}).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:        1,
+					NetworkID: 1,
+					Address:   "192.168.1.100",
+				},
+			},
+		},
+		{
+			name: "successfully filter by address",
+			filter: &entity.ListNetworkHostFilter{
+				Address: []string{"example.com"},
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:        5,
+						NetworkID: 3,
+						Address:   "example.com",
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{
+						Address: []string{"example.com"},
+					}).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:        5,
+					NetworkID: 3,
+					Address:   "example.com",
+				},
+			},
+		},
+		{
+			name: "successfully filter by ID",
+			filter: &entity.ListNetworkHostFilter{
+				ID: []uint64{10, 20},
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:        10,
+						NetworkID: 1,
+						Address:   "host1.com",
+					},
+					{
+						ID:        20,
+						NetworkID: 2,
+						Address:   "host2.com",
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{
+						ID: []uint64{10, 20},
+					}).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:        10,
+					NetworkID: 1,
+					Address:   "host1.com",
+				},
+				{
+					ID:        20,
+					NetworkID: 2,
+					Address:   "host2.com",
+				},
+			},
+		},
+		{
+			name: "successfully filter by search term",
+			filter: &entity.ListNetworkHostFilter{
+				Search: "web",
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:          15,
+						NetworkID:   1,
+						Address:     "webserver.local",
+						Description: stringPtr("Web application server"),
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{
+						Search: "web",
+					}).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:          15,
+					NetworkID:   1,
+					Address:     "webserver.local",
+					Description: stringPtr("Web application server"),
+				},
+			},
+		},
+		{
+			name: "successfully handle complex filter combination",
+			filter: &entity.ListNetworkHostFilter{
+				NetworkID: []uint64{1, 2},
+				Address:   []string{"api.example.com"},
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:        25,
+						NetworkID: 1,
+						Address:   "api.example.com",
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{
+						NetworkID: []uint64{1, 2},
+						Address:   []string{"api.example.com"},
+					}).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:        25,
+					NetworkID: 1,
+					Address:   "api.example.com",
+				},
+			},
+		},
+		{
+			name:   "successfully return empty list",
+			filter: &entity.ListNetworkHostFilter{},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{}).
+					Return([]*entity.NetworkHost{}, nil)
+			},
+			expectedResult: []*entity.NetworkHost{},
+		},
+		{
+			name:   "handle nil filter",
+			filter: nil,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				hosts := []*entity.NetworkHost{
+					{
+						ID:        1,
+						NetworkID: 1,
+						Address:   "default.host",
+					},
+				}
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), (*entity.ListNetworkHostFilter)(nil)).
+					Return(hosts, nil)
+			},
+			expectedResult: []*entity.NetworkHost{
+				{
+					ID:        1,
+					NetworkID: 1,
+					Address:   "default.host",
+				},
+			},
+		},
+		{
+			name: "error - storage list fails",
+			filter: &entity.ListNetworkHostFilter{
+				NetworkID: []uint64{999},
+			},
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost) {
+				mockNetworkHostStorage.EXPECT().
+					List(gomock.Any(), &entity.ListNetworkHostFilter{
+						NetworkID: []uint64{999},
+					}).
+					Return(nil, errors.New("database query failed"))
+			},
+			expectedError: "database query failed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			// Create mocks
+			mockTrm := mock_trm.NewMockManager(ctrl)
+			mockNetworkHostSetupUC := mock_usecase.NewMockNetworkHostSetup(ctrl)
+			mockNetworkStorage := mock_storage.NewMockNetwork(ctrl)
+			mockNetworkHostStorage := mock_storage.NewMockNetworkHost(ctrl)
+
+			// Setup mocks
+			tt.setupMocks(mockNetworkHostStorage)
+
+			// Create use case
+			useCase := New(
+				mockTrm,
+				mockNetworkHostSetupUC,
+				mockNetworkStorage,
+				mockNetworkHostStorage,
+			)
+
+			// Execute the method
+			result, err := useCase.List(context.Background(), tt.filter)
+
+			// Assert results
+			if tt.expectedError != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+				assert.Nil(t, result)
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, result)
+				assert.Len(t, result, len(tt.expectedResult))
+
+				for i, expectedHost := range tt.expectedResult {
+					assert.Equal(t, expectedHost.ID, result[i].ID)
+					assert.Equal(t, expectedHost.NetworkID, result[i].NetworkID)
+					assert.Equal(t, expectedHost.Address, result[i].Address)
+					if expectedHost.Description != nil {
+						require.NotNil(t, result[i].Description)
+						assert.Equal(t, *expectedHost.Description, *result[i].Description)
+					} else {
+						assert.Nil(t, result[i].Description)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestUseCase_Delete(t *testing.T) {
+	tests := []struct {
+		name          string
+		id            uint64
+		setupMocks    func(*mock_storage.MockNetworkHost, *mock_usecase.MockNetworkHostSetup, *mock_trm.MockManager)
+		expectedError string
+	}{
+		{
+			name: "successfully delete existing network host",
+			id:   1,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, mockNetworkHostSetupUC *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Mock existing host
+				existingHost := &entity.NetworkHost{
+					ID:        1,
+					NetworkID: 5,
+					Address:   "to.delete.com",
+				}
+				mockNetworkHostStorage.EXPECT().
+					Get(gomock.Any(), uint64(1)).
+					Return(existingHost, nil)
+
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock successful delete
+				mockNetworkHostStorage.EXPECT().
+					Delete(gomock.Any(), uint64(1)).
+					Return(nil)
+
+				// Mock successful sync
+				mockNetworkHostSetupUC.EXPECT().
+					SyncByNetworkID(gomock.Any(), uint64(5)).
+					Return(nil)
+			},
+		},
+		{
+			name: "silently handle host not found",
+			id:   999,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, _ *mock_usecase.MockNetworkHostSetup, _ *mock_trm.MockManager) {
+				// Mock host not found
+				mockNetworkHostStorage.EXPECT().
+					Get(gomock.Any(), uint64(999)).
+					Return(nil, errs.ErrNetworkHostNotFound)
+				// No other mocks should be called when host not found
+			},
+		},
+		{
+			name: "error - storage get fails with non-not-found error",
+			id:   2,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, _ *mock_usecase.MockNetworkHostSetup, _ *mock_trm.MockManager) {
+				// Mock get failure with database error
+				mockNetworkHostStorage.EXPECT().
+					Get(gomock.Any(), uint64(2)).
+					Return(nil, errors.New("database connection failed"))
+			},
+			expectedError: "failed to get network host: database connection failed",
+		},
+		{
+			name: "error - storage delete fails",
+			id:   3,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, _ *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Mock existing host
+				existingHost := &entity.NetworkHost{
+					ID:        3,
+					NetworkID: 10,
+					Address:   "delete.fail.com",
+				}
+				mockNetworkHostStorage.EXPECT().
+					Get(gomock.Any(), uint64(3)).
+					Return(existingHost, nil)
+
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock delete failure
+				mockNetworkHostStorage.EXPECT().
+					Delete(gomock.Any(), uint64(3)).
+					Return(errors.New("database delete failed"))
+			},
+			expectedError: "failed to delete network host: database delete failed",
+		},
+		{
+			name: "error - sync fails after successful delete",
+			id:   4,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, mockNetworkHostSetupUC *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Mock existing host
+				existingHost := &entity.NetworkHost{
+					ID:        4,
+					NetworkID: 15,
+					Address:   "sync.after.delete.fail.com",
+				}
+				mockNetworkHostStorage.EXPECT().
+					Get(gomock.Any(), uint64(4)).
+					Return(existingHost, nil)
+
+				// Setup transaction mock
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				// Mock successful delete
+				mockNetworkHostStorage.EXPECT().
+					Delete(gomock.Any(), uint64(4)).
+					Return(nil)
+
+				// Mock sync failure
+				mockNetworkHostSetupUC.EXPECT().
+					SyncByNetworkID(gomock.Any(), uint64(15)).
+					Return(errors.New("sync service unavailable"))
+			},
+			expectedError: "failed to sync network host setup: sync service unavailable",
+		},
+		{
+			name: "error - transaction fails",
+			id:   5,
+			setupMocks: func(mockNetworkHostStorage *mock_storage.MockNetworkHost, _ *mock_usecase.MockNetworkHostSetup, mockTrm *mock_trm.MockManager) {
+				// Mock existing host
+				existingHost := &entity.NetworkHost{
+					ID:        5,
+					NetworkID: 20,
+					Address:   "tx.fail.delete.com",
+				}
+				mockNetworkHostStorage.EXPECT().
+					Get(gomock.Any(), uint64(5)).
+					Return(existingHost, nil)
+
+				// Setup transaction failure
+				mockTrm.EXPECT().
+					Do(gomock.Any(), gomock.Any()).
+					Return(errors.New("transaction failed"))
+			},
+			expectedError: "failed to apply transaction: transaction failed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			// Create mocks
+			mockTrm := mock_trm.NewMockManager(ctrl)
+			mockNetworkHostSetupUC := mock_usecase.NewMockNetworkHostSetup(ctrl)
+			mockNetworkStorage := mock_storage.NewMockNetwork(ctrl)
+			mockNetworkHostStorage := mock_storage.NewMockNetworkHost(ctrl)
+
+			// Setup mocks
+			tt.setupMocks(mockNetworkHostStorage, mockNetworkHostSetupUC, mockTrm)
+
+			// Create use case
+			useCase := New(
+				mockTrm,
+				mockNetworkHostSetupUC,
+				mockNetworkStorage,
+				mockNetworkHostStorage,
+			)
+
+			// Execute the method
+			err := useCase.Delete(context.Background(), tt.id)
+
+			// Assert results
+			if tt.expectedError != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func BenchmarkUseCase_ImportByNetworkIDFromJSON(b *testing.B) {
 	ctrl := gomock.NewController(b)
 	defer ctrl.Finish()

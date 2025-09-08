@@ -9,6 +9,8 @@ import (
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+const jsonExtension = ".json"
+
 func (a *App) SaveFileWithDialog(filename, data string) (string, error) {
 	// Sanitize the filename to remove any invalid characters
 	safeFilename := strings.ReplaceAll(filename, "/", "_")
@@ -22,8 +24,8 @@ func (a *App) SaveFileWithDialog(filename, data string) (string, error) {
 	safeFilename = strings.ReplaceAll(safeFilename, "|", "_")
 
 	// Ensure the filename has a .json extension
-	if !strings.HasSuffix(strings.ToLower(safeFilename), ".json") {
-		safeFilename += ".json"
+	if !strings.HasSuffix(strings.ToLower(safeFilename), jsonExtension) {
+		safeFilename += jsonExtension
 	}
 
 	// Show save file dialog

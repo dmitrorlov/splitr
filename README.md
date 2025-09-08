@@ -47,10 +47,10 @@ The easiest way to install Splitr is using Homebrew:
 **Currently (using custom tap):**
 ```bash
 # One-liner installation  
-brew install --cask dmitrorlov/splitr/splitr
+brew install --cask dmitrorlov/tap/splitr
 
 # Or step by step
-brew tap dmitrorlov/splitr
+brew tap dmitrorlov/tap
 brew install --cask splitr
 ```
 

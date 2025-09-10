@@ -1,6 +1,8 @@
 export const formatTimestamp = (timestamp: string): string => {
   try {
     const date = new Date(timestamp)
+    if (isNaN(date.getTime())) return 'unknown'
+    
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
@@ -16,6 +18,7 @@ export const formatTimestamp = (timestamp: string): string => {
 export const formatDate = (date: Date | string): string => {
   try {
     const d = new Date(date)
+    if (isNaN(d.getTime())) return 'Invalid date'
     return d.toLocaleDateString()
   } catch {
     return 'Invalid date'
@@ -25,6 +28,7 @@ export const formatDate = (date: Date | string): string => {
 export const formatDateTime = (date: Date | string): string => {
   try {
     const d = new Date(date)
+    if (isNaN(d.getTime())) return 'Invalid date'
     return d.toLocaleString()
   } catch {
     return 'Invalid date'

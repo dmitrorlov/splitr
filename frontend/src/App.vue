@@ -14,11 +14,9 @@ import HostsScreen from './components/HostsScreen.vue'
 import NetworkHostsScreen from './components/NetworkHostsScreen.vue'
 import NetworksScreen from './components/NetworksScreen.vue'
 
-// Stores
 const navigationStore = useNavigationStore()
 const uiStore = useUIStore()
 
-// Computed properties from stores
 const currentScreen = computed(() => navigationStore.currentScreen)
 const selectedNetwork = computed(() => navigationStore.selectedNetwork)
 const globalLoading = computed(() => uiStore.globalLoading)
@@ -27,7 +25,6 @@ const notifications = computed(() => uiStore.notifications)
 const confirmDialogOpen = computed(() => uiStore.confirmDialogOpen)
 const confirmDialogProps = computed(() => uiStore.confirmDialogProps)
 
-// Navigation functions
 const handleScreenChange = (screen: typeof currentScreen.value) => {
   uiStore.clearAllNotifications()
   if (screen === 'networks') {
@@ -37,7 +34,6 @@ const handleScreenChange = (screen: typeof currentScreen.value) => {
   }
 }
 
-// Component event handlers
 const handleNetworkSelect = (network: entity.NetworkWithStatus) => {
   uiStore.clearAllNotifications()
   navigationStore.navigateToNetworkHosts(network)
@@ -51,7 +47,6 @@ const handleSuccess = (message: string) => {
   uiStore.showSuccess('Success', message)
 }
 
-// Global loading event handlers
 const handleLoadingStart = (message: string) => {
   uiStore.showGlobalLoading(message)
 }
@@ -64,7 +59,6 @@ const goBackToNetworks = () => {
   navigationStore.navigateToNetworks()
 }
 
-// Helper to get notification classes
 const getNotificationClasses = (type: string) => {
   const baseClasses = 'mb-4 px-4 py-3 rounded-lg flex items-center'
   switch (type) {
@@ -93,9 +87,7 @@ const getNotificationIcon = (type: string) => {
   }
 }
 
-// Lifecycle
 onMounted(() => {
-  // Initialize with networks screen
   navigationStore.navigateToNetworks()
 })
 </script>

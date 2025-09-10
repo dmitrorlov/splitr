@@ -1,23 +1,19 @@
-// Networks store - manages network-related state and operations
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { networksService, vpnService } from '@/services'
 import type { entity } from '../../wailsjs/go/models'
 
 export const useNetworksStore = defineStore('networks', () => {
-  // State
   const networks = ref<entity.NetworkWithStatus[]>([])
   const vpnServices = ref<string[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const searchTerm = ref('')
 
-  // Loading states for specific operations
   const syncingNetworkId = ref<number | null>(null)
   const resettingNetworkId = ref<number | null>(null)
   const deletingNetworkId = ref<number | null>(null)
 
-  // Getters
   const filteredNetworks = computed(() => {
     if (!searchTerm.value) return networks.value
 
@@ -36,7 +32,6 @@ export const useNetworksStore = defineStore('networks', () => {
   const totalNetworks = computed(() => networks.value.length)
   const activeNetworkCount = computed(() => activeNetworks.value.length)
 
-  // Actions
   const fetchNetworks = async () => {
     try {
       loading.value = true
@@ -138,7 +133,6 @@ export const useNetworksStore = defineStore('networks', () => {
     return networks.value.find(network => network.ID === id)
   }
 
-  // Utility methods
   const isNetworkSyncing = (id: number): boolean => {
     return syncingNetworkId.value === id
   }
@@ -156,7 +150,6 @@ export const useNetworksStore = defineStore('networks', () => {
   }
 
   return {
-    // State
     networks,
     vpnServices,
     loading,
@@ -166,14 +159,12 @@ export const useNetworksStore = defineStore('networks', () => {
     resettingNetworkId,
     deletingNetworkId,
 
-    // Getters
     filteredNetworks,
     sortedNetworks,
     activeNetworks,
     totalNetworks,
     activeNetworkCount,
 
-    // Actions
     fetchNetworks,
     fetchVPNServices,
     addNetwork,
@@ -185,7 +176,6 @@ export const useNetworksStore = defineStore('networks', () => {
     clearError,
     getNetworkById,
 
-    // Utility methods
     isNetworkSyncing,
     isNetworkResetting,
     isNetworkDeleting,

@@ -23,12 +23,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// Composables
 const networksStore = useNetworksStore()
 const confirmations = useNetworkConfirmations()
 const notifications = useNetworkNotifications()
 
-// Actions
 const handleSelect = () => {
   // Prevent navigation if any operation is in progress
   if (isAnyLoading.value) {
@@ -67,7 +65,6 @@ const handleDelete = async () => {
   }
 }
 
-// Loading states
 const isSyncing = computed(() => networksStore.isNetworkSyncing(props.network.ID))
 const isResetting = computed(() => networksStore.isNetworkResetting(props.network.ID))
 const isDeleting = computed(() => networksStore.isNetworkDeleting(props.network.ID))

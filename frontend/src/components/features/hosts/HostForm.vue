@@ -23,7 +23,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// Stores and composables
 const hostsStore = useHostsStore()
 const notifications = useHostNotifications()
 
@@ -67,10 +66,8 @@ const { form, validate, setFieldValue, resetForm } = useFormValidation(formField
   description: '',
 })
 
-// Loading states
 const isSubmitting = ref(false)
 
-// Actions
 const handleSubmit = async () => {
   if (!validate()) return
 

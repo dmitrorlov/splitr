@@ -7,28 +7,18 @@ import { SearchInput } from '@/components/ui'
 import { useHostsStore } from '@/stores'
 import type { entity } from '../wailsjs/go/models'
 
-// Emit events
 const emit = defineEmits<{
   error: [message: string]
   success: [message: string]
 }>()
 
-// Stores
 const hostsStore = useHostsStore()
 
-// Form state
 const showAddHostForm = ref(false)
 
-// Computed properties
 const searchTerm = computed(() => hostsStore.searchTerm)
 const sortedHosts = computed(() => hostsStore.sortedHosts)
 const searchResultCount = computed(() => sortedHosts.value.length)
-
-// Event handlers
-// Host selection not needed - removed to avoid unnecessary click handlers
-// const handleHostSelect = (host: entity.Host) => {
-//   console.log('Host selected:', host)
-// }
 
 const handleHostAdded = (_host: entity.Host) => {
   showAddHostForm.value = false
@@ -50,7 +40,6 @@ const openAddHostForm = () => {
   showAddHostForm.value = true
 }
 
-// Lifecycle
 onMounted(async () => {
   await hostsStore.fetchHosts()
 })

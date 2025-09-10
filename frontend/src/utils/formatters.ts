@@ -1,6 +1,3 @@
-// Utility functions for formatting and general helpers
-
-// Time formatting utilities - exact logic from NetworksScreen.vue
 export const formatTimestamp = (timestamp: string): string => {
   try {
     const date = new Date(timestamp)
@@ -16,7 +13,6 @@ export const formatTimestamp = (timestamp: string): string => {
   }
 }
 
-// Format date to readable string
 export const formatDate = (date: Date | string): string => {
   try {
     const d = new Date(date)
@@ -26,7 +22,6 @@ export const formatDate = (date: Date | string): string => {
   }
 }
 
-// Format date and time
 export const formatDateTime = (date: Date | string): string => {
   try {
     const d = new Date(date)
@@ -36,7 +31,6 @@ export const formatDateTime = (date: Date | string): string => {
   }
 }
 
-// Format file size
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes'
 
@@ -47,19 +41,16 @@ export const formatFileSize = (bytes: number): string => {
   return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
 }
 
-// Truncate text with ellipsis
 export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text
   return `${text.substring(0, maxLength)}...`
 }
 
-// Capitalize first letter
 export const capitalize = (str: string): string => {
   if (!str) return str
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-// Convert camelCase to readable text
 export const camelToTitle = (str: string): string => {
   return str
     .replace(/([A-Z])/g, ' $1')
@@ -67,12 +58,10 @@ export const camelToTitle = (str: string): string => {
     .trim()
 }
 
-// Generate random ID
 export const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9)
 }
 
-// Pluralize words
 export const pluralize = (word: string, count: number): string => {
   if (count === 1) return word
 

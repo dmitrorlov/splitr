@@ -24,7 +24,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// Stores and composables
 const networkHostsStore = useNetworkHostsStore()
 const hostsStore = useHostsStore()
 const notifications = useHostNotifications()
@@ -72,10 +71,8 @@ const { form, validate, setFieldValue, resetForm } = useFormValidation(formField
   description: '',
 })
 
-// Loading states
 const isSubmitting = ref(false)
 
-// Computed
 const availableHosts = computed(() => {
   const networkHostAddresses = new Set(
     networkHostsStore.networkHosts.map((nh: NetworkHost) => nh.Address)
@@ -109,7 +106,6 @@ watch(selectedExistingHost, host => {
   }
 })
 
-// Actions
 const handleSubmit = async () => {
   if (!validate()) return
 

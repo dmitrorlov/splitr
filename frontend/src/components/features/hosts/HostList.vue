@@ -11,14 +11,10 @@ interface Props {
   searchTerm?: string
 }
 
-type Emits = Record<string, never>
-
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   searchTerm: '',
 })
-
-const emit = defineEmits<Emits>()
 
 // No event handlers needed currently
 // const handleHostSelect = (host: Host) => {

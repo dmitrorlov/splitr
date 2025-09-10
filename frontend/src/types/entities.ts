@@ -1,6 +1,3 @@
-// Enhanced type definitions for entities
-// Based on the Wails-generated models but simplified for frontend use
-
 export interface BaseEntity {
   ID: number
   CreatedAt: string
@@ -27,7 +24,6 @@ export interface NetworkHost extends BaseEntity {
 
 export type VPNService = string
 
-// Filter types for API queries
 export interface ListFilter {
   search?: string
   limit?: number
@@ -46,7 +42,6 @@ export interface NetworkHostFilter extends ListFilter {
   networkId?: number
 }
 
-// Form types for creating entities
 export interface CreateHostRequest {
   address: string
   description?: string
@@ -62,7 +57,6 @@ export interface CreateNetworkHostRequest {
   description?: string
 }
 
-// Update types for modifying entities
 export interface UpdateHostRequest {
   id: number
   address?: string
@@ -80,7 +74,6 @@ export interface UpdateNetworkHostRequest {
   description?: string
 }
 
-// Response types
 export interface EntitiesApiResponse<T = unknown> {
   data: T
   error?: string
@@ -93,5 +86,4 @@ export interface ListResponse<T> {
   pageSize?: number
 }
 
-// Screen type for navigation
 export type EntitiesScreen = 'networks' | 'networkHosts' | 'hosts'

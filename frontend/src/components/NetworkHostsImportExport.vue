@@ -14,29 +14,25 @@ import {
 } from '../../wailsjs/go/app/App'
 import type { entity } from '../../wailsjs/go/models'
 
-// Props
 interface Props {
   network: entity.NetworkWithStatus
 }
 
 const props = defineProps<Props>()
 
-// Emit events
 const emit = defineEmits<{
   error: [message: string]
   success: [message: string]
   loadingStart: [message: string]
   loadingEnd: []
-  hostsUpdated: [] // To refresh the parent component
+  hostsUpdated: []
 }>()
 
-// State
 const showImportExport = ref(false)
 const exportData = ref<string>('')
 const importData = ref<string>('')
 const loading = ref(false)
 
-// Export functionality
 const handleExport = async () => {
   try {
     loading.value = true
@@ -61,7 +57,6 @@ const handleExport = async () => {
   }
 }
 
-// Import functionality
 const handleImport = async () => {
   if (!importData.value.trim()) {
     emit('error', 'Please enter JSON data to import')

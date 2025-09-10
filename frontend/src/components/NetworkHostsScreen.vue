@@ -23,23 +23,14 @@ const emit = defineEmits<{
   loadingEnd: []
 }>()
 
-// Stores
 const networkHostsStore = useNetworkHostsStore()
 const hostsStore = useHostsStore()
 
-// Form state
 const showAddNetworkHostForm = ref(false)
 
-// Computed properties
 const searchTerm = computed(() => networkHostsStore.searchTerm)
 const sortedNetworkHosts = computed(() => networkHostsStore.sortedNetworkHosts)
 const searchResultCount = computed(() => sortedNetworkHosts.value.length)
-
-// Event handlers
-// Network host selection not needed - removed to avoid unnecessary click handlers
-// const handleNetworkHostSelect = (networkHost: entity.NetworkHost) => {
-//   console.log('Network host selected:', networkHost)
-// }
 
 const handleNetworkHostAdded = (_networkHost: entity.NetworkHost) => {
   showAddNetworkHostForm.value = false
@@ -83,7 +74,6 @@ const handleImportExportSuccess = (message: string) => {
   emit('success', message)
 }
 
-// Lifecycle
 onMounted(async () => {
   emit('loadingStart', 'Loading network hosts...')
   try {
@@ -97,7 +87,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // Clean up network hosts store when leaving
   networkHostsStore.clearNetworkHosts()
 })
 </script>

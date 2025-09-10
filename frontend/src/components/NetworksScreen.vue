@@ -21,18 +21,14 @@ const emit = defineEmits<{
   success: [message: string]
 }>()
 
-// Stores
 const networksStore = useNetworksStore()
 
-// Form state
 const showAddNetworkForm = ref(false)
 
-// Computed properties
 const searchTerm = computed(() => networksStore.searchTerm)
 const sortedNetworks = computed(() => networksStore.sortedNetworks)
 const searchResultCount = computed(() => sortedNetworks.value.length)
 
-// Event handlers
 const handleNetworkSelect = (network: entity.NetworkWithStatus) => {
   props.onNetworkSelect(network)
 }
@@ -58,7 +54,6 @@ const openAddNetworkForm = () => {
   showAddNetworkForm.value = true
 }
 
-// Lifecycle
 onMounted(async () => {
   await networksStore.fetchNetworks()
 })

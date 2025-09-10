@@ -22,7 +22,6 @@ const hostsStore = useHostsStore()
 const confirmations = useHostConfirmations()
 const notifications = useHostNotifications()
 
-// Actions
 const handleDelete = async () => {
   try {
     const confirmed = await confirmations.confirmHostDeletion(props.host.Address)
@@ -35,7 +34,6 @@ const handleDelete = async () => {
   }
 }
 
-// Loading states
 const isDeleting = computed(() => hostsStore.isHostDeleting(props.host.ID))
 </script>
 

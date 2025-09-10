@@ -5,7 +5,6 @@ import type { ConfirmDialogProps } from '@/types'
 export interface UseConfirmDialogReturn {
   show: (props?: Partial<ConfirmDialogProps>) => Promise<boolean>
   showDeleteConfirmation: (itemName?: string) => Promise<boolean>
-  showDestructiveConfirmation: (action: string, itemName?: string) => Promise<boolean>
 }
 
 export function useConfirmDialog(): UseConfirmDialogReturn {
@@ -27,25 +26,9 @@ export function useConfirmDialog(): UseConfirmDialogReturn {
     })
   }
 
-  const showDestructiveConfirmation = async (
-    action: string,
-    itemName?: string
-  ): Promise<boolean> => {
-    const name = itemName ? ` "${itemName}"` : ''
-    return await show({
-      title: `Confirm ${action}`,
-      message: `Are you sure you want to ${action.toLowerCase()}${name}? This action may have significant effects.`,
-      confirmText: action,
-      cancelText: 'Cancel',
-      type: 'warning',
-      confirmButtonVariant: 'danger',
-    })
-  }
-
   return {
     show,
     showDeleteConfirmation,
-    showDestructiveConfirmation,
   }
 }
 

@@ -1,4 +1,3 @@
-// Networks service - handles all network-related API calls
 import {
   AddNetwork,
   DeleteNetwork,
@@ -31,7 +30,6 @@ export const networksService = {
   },
 }
 
-// VPN service for listing available VPN connections
 export const vpnService = {
   async listServices(): Promise<string[]> {
     return ListVPNServices() as unknown as Promise<string[]>

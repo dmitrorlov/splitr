@@ -1,3 +1,4 @@
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { initFrontendLogger } from './lib/frontendLogger' // add this import first
@@ -56,7 +57,14 @@ waitForWailsRuntime().then(() => {
 
   try {
     const app = createApp(App)
+
+    // Initialize Pinia store
+    const pinia = createPinia()
+    app.use(pinia)
+
     app.mount('#app')
+
+    console.log('Vue app initialized successfully with Pinia store')
   } catch (error) {
     console.error('Error mounting Vue app:', error)
     LogError(`Frontend: Failed to initialize Vue app: ${error}`)

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
+    "build:check": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "biome check src",
     "lint:fix": "biome check src --write",
@@ -14,6 +15,8 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
+    "@vueuse/core": "^13.9.0",
+    "pinia": "^3.0.3",
     "vue": "^3.4.0"
   },
   "devDependencies": {

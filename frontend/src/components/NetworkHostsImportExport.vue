@@ -7,15 +7,16 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
-import { ExportNetworkHosts, ImportNetworkHosts } from '../../wailsjs/go/app/App'
+import {
+  ExportNetworkHosts,
+  ImportNetworkHosts,
+  SaveFileWithDialog,
+} from '../../wailsjs/go/app/App'
 import type { entity } from '../../wailsjs/go/models'
-
-// Types
-type Network = entity.NetworkWithStatus
 
 // Props
 interface Props {
-  network: Network
+  network: entity.NetworkWithStatus
 }
 
 const props = defineProps<Props>()
@@ -44,29 +45,20 @@ const handleExport = async () => {
     const jsonData = await ExportNetworkHosts(props.network.ID)
     exportData.value = jsonData
 
-    emit('success', 'Network hosts exported successfully!')
+    // Use native file dialog to save the file
+    const filename = `${props.network.Name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_hosts_export`
+    const savedPath = await SaveFileWithDialog(filename, jsonData)
 
-    // Optional: Automatically download the file
-    downloadExport(jsonData)
+    if (savedPath) {
+      emit('success', `Network hosts exported successfully to: ${savedPath}`)
+    }
+    // If savedPath is empty, user cancelled the dialog - don't show any message
   } catch (error) {
     emit('error', `Failed to export network hosts: ${error}`)
   } finally {
     loading.value = false
     emit('loadingEnd')
   }
-}
-
-// Download export as file
-const downloadExport = (data: string) => {
-  const blob = new Blob([data], { type: 'application/json' })
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${props.network.Name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_hosts_export.json`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  window.URL.revokeObjectURL(url)
 }
 
 // Import functionality

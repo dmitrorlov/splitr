@@ -9,10 +9,32 @@ declare global {
           DeleteHost: (arg1: number) => Promise<any>
           DeleteNetwork: (arg1: number) => Promise<any>
           DeleteNetworkHost: (arg1: number) => Promise<any>
-          ListHosts: () => Promise<any>
-          ListNetworkHosts: (arg1: number) => Promise<any>
-          ListNetworks: () => Promise<any>
+          ExportNetworkHosts: (arg1: number) => Promise<any>
+          ImportNetworkHosts: (arg1: number, arg2: string) => Promise<any>
+          ListHosts: (arg1: string) => Promise<any>
+          ListNetworkHosts: (arg1: number, arg2: string) => Promise<any>
+          ListNetworks: (arg1: string) => Promise<any>
           ListVPNServices: () => Promise<any>
+          SaveFileWithDialog: (arg1: string, arg2: string) => Promise<any>
+          SyncNetworkHostSetup: (arg1: number) => Promise<any>
+          ResetNetworkHostSetup: (arg1: number) => Promise<any>
+        }
+      }
+      app?: {
+        App?: {
+          AddHost: (arg1: string, arg2: string) => Promise<any>
+          AddNetwork: (arg1: string) => Promise<any>
+          AddNetworkHost: (arg1: number, arg2: string, arg3: string) => Promise<any>
+          DeleteHost: (arg1: number) => Promise<any>
+          DeleteNetwork: (arg1: number) => Promise<any>
+          DeleteNetworkHost: (arg1: number) => Promise<any>
+          ExportNetworkHosts: (arg1: number) => Promise<any>
+          ImportNetworkHosts: (arg1: number, arg2: string) => Promise<any>
+          ListHosts: (arg1: string) => Promise<any>
+          ListNetworkHosts: (arg1: number, arg2: string) => Promise<any>
+          ListNetworks: (arg1: string) => Promise<any>
+          ListVPNServices: () => Promise<any>
+          SaveFileWithDialog: (arg1: string, arg2: string) => Promise<any>
           SyncNetworkHostSetup: (arg1: number) => Promise<any>
           ResetNetworkHostSetup: (arg1: number) => Promise<any>
         }

@@ -15,9 +15,10 @@
 .DS_Store
 .zed
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the coverage tool, specifically when used with LiteIDE
 *.out
 coverage.html
+frontend/coverage
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

@@ -16,6 +16,12 @@ export default defineConfig({
         'wailsjs/',
         '**/*.d.ts',
         'src/types/',
+        'vite.config.ts',
+        'vitest.config.ts',
+        'tailwind.config.js',
+        'postcss.config.js',
+        'biome.json',
+        'dist/',
       ],
       thresholds: {
         global: {

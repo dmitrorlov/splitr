@@ -13,8 +13,6 @@ dotenv:
 env:
   # Go build flags and configuration
   GOFLAGS: '{{default "-mod=readonly" .GOFLAGS}}'
-  GOARCH: '{{default "amd64" .GOARCH}}'
-  GOOS: '{{default "darwin" .GOOS}}'
   CGO_ENABLED: '{{default "1" .CGO_ENABLED}}'
   # CGO flags to suppress macOS linker warnings
   CGO_LDFLAGS: '{{default "-Wl,-w" .CGO_LDFLAGS}}'
@@ -378,8 +376,6 @@ tasks:
       echo "Backend: Go with Clean Architecture"
       echo ""
       echo "Environment:"
-      echo "  GOOS: ${GOOS}"
-      echo "  GOARCH: ${GOARCH}"
       echo "  CGO_ENABLED: ${CGO_ENABLED}"
       echo "  DB_URL: ${DB_URL}"
       echo "  WAILS_ENV: ${WAILS_ENV}"

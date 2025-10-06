@@ -5,118 +5,90 @@ import {
   ExclamationTriangleIcon,
   ServerIcon,
 } from '@heroicons/vue/24/outline'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
+import LoadingOverlay from '@/components/layout/LoadingOverlay.vue'
+import { ConfirmDialog } from '@/components/ui'
+import { useNavigationStore, useUIStore } from '@/stores'
 import type { entity } from '../wailsjs/go/models'
 import HostsScreen from './components/HostsScreen.vue'
-import LoadingOverlay from './components/LoadingOverlay.vue'
 import NetworkHostsScreen from './components/NetworkHostsScreen.vue'
 import NetworksScreen from './components/NetworksScreen.vue'
 
-// Types
-type Network = entity.NetworkWithStatus
+const navigationStore = useNavigationStore()
+const uiStore = useUIStore()
 
-// UI state
-type Screen = 'networks' | 'networkHosts' | 'hosts'
-const currentScreen = ref<Screen>('networks')
-const selectedNetwork = ref<Network | null>(null)
+const currentScreen = computed(() => navigationStore.currentScreen)
+const selectedNetwork = computed(() => navigationStore.selectedNetwork)
+const globalLoading = computed(() => uiStore.globalLoading)
+const globalLoadingMessage = computed(() => uiStore.globalLoadingMessage)
+const notifications = computed(() => uiStore.notifications)
+const confirmDialogOpen = computed(() => uiStore.confirmDialogOpen)
+const confirmDialogProps = computed(() => uiStore.confirmDialogProps)
 
-// Global loading state
-const globalLoading = ref<boolean>(false)
-const globalLoadingMessage = ref<string>('Loading...')
-
-// Notification state
-const error = ref<string | null>(null)
-const success = ref<string | null>(null)
-
-// Global loading functions
-const showGlobalLoading = (message: string = 'Loading...') => {
-  globalLoadingMessage.value = message
-  globalLoading.value = true
-}
-
-const hideGlobalLoading = () => {
-  globalLoading.value = false
-}
-
-// Notification functions
-const showSuccess = (message: string) => {
-  success.value = message
-  setTimeout(() => {
-    success.value = null
-  }, 3000)
-}
-
-const showError = (message: string) => {
-  error.value = message
-  setTimeout(() => {
-    error.value = null
-  }, 5000)
-}
-
-// Navigation functions
-const navigateToNetworks = () => {
-  currentScreen.value = 'networks'
-  selectedNetwork.value = null
-}
-
-const navigateToNetworkHosts = (network: Network) => {
-  selectedNetwork.value = network
-  currentScreen.value = 'networkHosts'
-}
-
-const navigateToHosts = () => {
-  currentScreen.value = 'hosts'
-  selectedNetwork.value = null
-}
-
-const goBackToNetworks = () => {
-  currentScreen.value = 'networks'
-  selectedNetwork.value = null
-}
-
-// Clear notifications when route changes
-const clearNotifications = () => {
-  error.value = null
-  success.value = null
-}
-
-// Handle screen changes
-const handleScreenChange = (screen: Screen) => {
-  clearNotifications()
+const handleScreenChange = (screen: typeof currentScreen.value) => {
+  uiStore.clearAllNotifications()
   if (screen === 'networks') {
-    navigateToNetworks()
+    navigationStore.navigateToNetworks()
   } else if (screen === 'hosts') {
-    navigateToHosts()
+    navigationStore.navigateToHosts()
   }
 }
 
-// Component event handlers
-const handleNetworkSelect = (network: Network) => {
-  clearNotifications()
-  navigateToNetworkHosts(network)
+const handleNetworkSelect = (network: entity.NetworkWithStatus) => {
+  uiStore.clearAllNotifications()
+  navigationStore.navigateToNetworkHosts(network)
 }
 
 const handleError = (message: string) => {
-  showError(message)
+  uiStore.showError('Error', message)
 }
 
 const handleSuccess = (message: string) => {
-  showSuccess(message)
+  uiStore.showSuccess('Success', message)
 }
 
-// Global loading event handlers
 const handleLoadingStart = (message: string) => {
-  showGlobalLoading(message)
+  uiStore.showGlobalLoading(message)
 }
 
 const handleLoadingEnd = () => {
-  hideGlobalLoading()
+  uiStore.hideGlobalLoading()
 }
 
-// Lifecycle
+const goBackToNetworks = () => {
+  navigationStore.navigateToNetworks()
+}
+
+const getNotificationClasses = (type: string) => {
+  const baseClasses = 'mb-4 px-4 py-3 rounded-lg flex items-center'
+  switch (type) {
+    case 'error':
+      return `${baseClasses} bg-red-100 border border-red-400 text-red-700`
+    case 'success':
+      return `${baseClasses} bg-green-100 border border-green-400 text-green-700`
+    case 'warning':
+      return `${baseClasses} bg-yellow-100 border border-yellow-400 text-yellow-700`
+    case 'info':
+      return `${baseClasses} bg-blue-100 border border-blue-400 text-blue-700`
+    default:
+      return baseClasses
+  }
+}
+
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'error':
+    case 'warning':
+      return ExclamationTriangleIcon
+    case 'success':
+      return CheckCircleIcon
+    default:
+      return CheckCircleIcon
+  }
+}
+
 onMounted(() => {
-  // Initialize with networks screen
-  currentScreen.value = 'networks'
+  navigationStore.navigateToNetworks()
 })
 </script>
 
@@ -134,26 +106,32 @@ onMounted(() => {
                 </p>
             </div>
 
-            <!-- Notifications -->
+            <!-- Notifications - using new notification system -->
             <div class="notification-wrapper">
-                <transition name="fade">
+                <TransitionGroup name="fade" tag="div">
                     <div
-                        v-if="error"
-                        class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center"
+                        v-for="notification in notifications"
+                        :key="notification.id"
+                        :class="getNotificationClasses(notification.type)"
                     >
-                        <ExclamationTriangleIcon class="w-5 h-5 mr-2" />
-                        {{ error }}
+                        <component 
+                            :is="getNotificationIcon(notification.type)" 
+                            class="w-5 h-5 mr-2" 
+                        />
+                        <div>
+                            <div class="font-medium">{{ notification.title }}</div>
+                            <div v-if="notification.message" class="text-sm">{{ notification.message }}</div>
+                        </div>
+                        <button
+                            @click="uiStore.removeNotification(notification.id)"
+                            class="ml-auto pl-3 text-current hover:opacity-75"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
-                </transition>
-                <transition name="fade">
-                    <div
-                        v-if="success"
-                        class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg flex items-center"
-                    >
-                        <CheckCircleIcon class="w-5 h-5 mr-2" />
-                        {{ success }}
-                    </div>
-                </transition>
+                </TransitionGroup>
             </div>
 
             <!-- Navigation Tabs (only show on main screens) -->
@@ -222,6 +200,18 @@ onMounted(() => {
 
         <!-- Global Loading Overlay -->
         <LoadingOverlay :show="globalLoading" :message="globalLoadingMessage" />
+
+        <!-- Global Confirm Dialog -->
+        <ConfirmDialog
+            :visible="confirmDialogOpen"
+            :title="confirmDialogProps.title"
+            :message="confirmDialogProps.message"
+            :confirm-text="confirmDialogProps.confirmText"
+            :cancel-text="confirmDialogProps.cancelText"
+            :type="confirmDialogProps.type"
+            @confirm="uiStore.confirmDialog"
+            @cancel="uiStore.cancelDialog"
+        />
     </div>
 </template>
 

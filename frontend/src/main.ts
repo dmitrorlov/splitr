@@ -1,3 +1,4 @@
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { initFrontendLogger } from './lib/frontendLogger' // add this import first
@@ -19,11 +20,10 @@ window.addEventListener('unhandledrejection', event => {
   console.error('Unhandled promise rejection:', event.reason)
 })
 
-// Wait for Wails runtime to be ready
 function waitForWailsRuntime() {
   return new Promise<void>(resolve => {
     let attempts = 0
-    const maxAttempts = 100 // 10 seconds max wait
+    const maxAttempts = 100
 
     if (window.go) {
       console.log('Wails runtime already available')
@@ -49,14 +49,18 @@ function waitForWailsRuntime() {
   })
 }
 
-// Initialize app after runtime is ready
 waitForWailsRuntime().then(() => {
-  // Let the logger flush buffered entries to the rotating file
   feLogger.markRuntimeReady()
 
   try {
     const app = createApp(App)
+
+    const pinia = createPinia()
+    app.use(pinia)
+
     app.mount('#app')
+
+    console.log('Vue app initialized successfully with Pinia store')
   } catch (error) {
     console.error('Error mounting Vue app:', error)
     LogError(`Frontend: Failed to initialize Vue app: ${error}`)

@@ -75,11 +75,33 @@ jobs:
           echo "🔍 Running linters (backend + frontend)..."
           task lint
 
-      - name: Run tests
-        id: test
+      - name: Run backend tests
+        id: test-backend
         run: |
-          echo "🧪 Running tests with race detector..."
-          task test
+          echo "🧪 Running backend tests with coverage..."
+          task test:backend:coverage
+
+      - name: Run frontend tests
+        id: test-frontend
+        run: |
+          echo "🧪 Running frontend tests with coverage..."
+          task test:frontend:coverage
+
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: |
+            coverage.html
+            coverage.out
+          if-no-files-found: ignore
+
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage/
+          if-no-files-found: ignore
 
       - name: Summary
         if: always()
@@ -89,11 +111,14 @@ jobs:
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🔍 Linting | ${{ steps.lint.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Testing | ${{ steps.test.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Backend Tests | ${{ steps.test-backend.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🎨 Frontend Tests | ${{ steps.test-frontend.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports have been uploaded as artifacts and can be downloaded from the Actions tab." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Overall Status:** ${{ job.status == 'success' && '✅ All checks passed!' || '❌ Some checks failed' }}" >> $GITHUB_STEP_SUMMARY
 
-  # Separate lightweight job for draft PRs
   draft-pr-check:
     name: Draft PR Quick Check
     runs-on: ubuntu-latest

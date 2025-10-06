@@ -13,8 +13,6 @@ dotenv:
 env:
   # Go build flags and configuration
   GOFLAGS: '{{default "-mod=readonly" .GOFLAGS}}'
-  GOARCH: '{{default "amd64" .GOARCH}}'
-  GOOS: '{{default "darwin" .GOOS}}'
   CGO_ENABLED: '{{default "1" .CGO_ENABLED}}'
   # CGO flags to suppress macOS linker warnings
   CGO_LDFLAGS: '{{default "-Wl,-w" .CGO_LDFLAGS}}'
@@ -187,16 +185,50 @@ tasks:
     cmd: npm run format
 
   # Testing tasks
-  test:
-    desc: "Run all tests with race detector"
+  test:frontend:
+    desc: "Run frontend tests"
+    dir: frontend
+    deps: [install:frontend]
+    sources:
+      - "src/**/*.{js,ts,vue}"
+      - "tests/**/*.{js,ts}"
+      - "package.json"
+      - "vitest.config.ts"
+    cmd: npm run test:run
+
+  test:frontend:coverage:
+    desc: "Run frontend tests with coverage report"
+    dir: frontend
+    deps: [install:frontend]
+    sources:
+      - "src/**/*.{js,ts,vue}"
+      - "tests/**/*.{js,ts}"
+      - "package.json"
+      - "vitest.config.ts"
+    generates:
+      - "coverage/**/*"
+    cmd: npm run test:coverage
+
+  test:frontend:coverage:view:
+    desc: "Open frontend coverage HTML report in browser"
+    deps: [test:frontend:coverage]
+    cmd: |
+      {{if eq OS "darwin"}}open frontend/coverage/index.html{{else if eq OS "linux"}}xdg-open frontend/coverage/index.html{{else if eq OS "windows"}}start frontend/coverage/index.html{{else}}echo "Please open frontend/coverage/index.html manually"{{end}}
+
+  test:backend:
+    desc: "Run backend tests with race detector"
     sources:
       - "**/*.go"
       - go.mod
       - go.sum
     cmd: go test -race ./...
 
-  test:cover:
-    desc: "Run tests with coverage and generate coverage report files"
+  test:
+    desc: "Run all tests (backend and frontend)"
+    deps: [test:backend, test:frontend]
+
+  test:backend:coverage:
+    desc: "Run backend tests with coverage and generate coverage report files"
     sources:
       - "**/*.go"
       - go.mod
@@ -215,13 +247,38 @@ tasks:
 
       # Generate HTML report
       go tool cover -html=coverage.out -o coverage.html
-      echo "Coverage report generated: coverage.html"
+      echo "Backend coverage report generated: coverage.html"
 
-  test:cover:view:
-    desc: "Open coverage HTML report in browser"
-    deps: [test:cover]
+  test:backend:coverage:view:
+    desc: "Open backend coverage HTML report in browser"
+    deps: [test:backend:coverage]
     cmd: |
       {{if eq OS "darwin"}}open coverage.html{{else if eq OS "linux"}}xdg-open coverage.html{{else if eq OS "windows"}}start coverage.html{{else}}echo "Please open coverage.html manually"{{end}}
+
+  test:coverage:
+    desc: "Run all tests with coverage (backend and frontend)"
+    deps: [test:backend:coverage, test:frontend:coverage]
+    cmd: |
+      echo "✅ Coverage reports generated:"
+      echo "  Backend: coverage.html"
+      echo "  Frontend: frontend/coverage/index.html"
+
+  test:coverage:view:
+    desc: "Open all coverage reports in browser"
+    deps: [test:coverage]
+    cmd: |
+      {{if eq OS "darwin"}}
+      open coverage.html
+      open frontend/coverage/index.html
+      {{else if eq OS "linux"}}
+      xdg-open coverage.html
+      xdg-open frontend/coverage/index.html
+      {{else if eq OS "windows"}}
+      start coverage.html
+      start frontend/coverage/index.html
+      {{else}}
+      echo "Please open coverage.html and frontend/coverage/index.html manually"
+      {{end}}
 
   build:frontend:
     desc: "Build frontend"
@@ -244,7 +301,7 @@ tasks:
 
   build:
     desc: "Meta build task for CI (runs all checks and builds production version)"
-    deps: [lint, mock:all, test, build:frontend]
+    deps: [lint, mock:all, test:backend, test:frontend, build:frontend]
     cmd: |
       echo "✅ All checks passed, building production version..."
       wails build
@@ -267,6 +324,7 @@ tasks:
     dir: frontend
     cmd: |
       rm -rf dist
+      rm -rf coverage
       rm -rf node_modules/.cache
       echo "Frontend artifacts cleaned"
 
@@ -318,8 +376,6 @@ tasks:
       echo "Backend: Go with Clean Architecture"
       echo ""
       echo "Environment:"
-      echo "  GOOS: ${GOOS}"
-      echo "  GOARCH: ${GOARCH}"
       echo "  CGO_ENABLED: ${CGO_ENABLED}"
       echo "  DB_URL: ${DB_URL}"
       echo "  WAILS_ENV: ${WAILS_ENV}"
@@ -498,52 +554,58 @@ tasks:
       echo "=========================="
       echo ""
       echo "📦 Setup & Installation:"
-      echo "  setup                 - Complete project setup (install all tools and dependencies)"
-      echo "  install:mockgen       - Install mockgen tool (uber-go/mock)"
-      echo "  install:golangci-lint - Install golangci-lint"
-      echo "  install:migrate       - Install golang-migrate tool"
-      echo "  install:wails         - Install Wails CLI"
-      echo "  install:frontend      - Install frontend dependencies"
+      echo "  setup                       - Complete project setup (install all tools and dependencies)"
+      echo "  install:mockgen             - Install mockgen tool (uber-go/mock)"
+      echo "  install:golangci-lint       - Install golangci-lint"
+      echo "  install:migrate             - Install golang-migrate tool"
+      echo "  install:wails               - Install Wails CLI"
+      echo "  install:frontend            - Install frontend dependencies"
       echo ""
       echo "🔨 Build & Development:"
-      echo "  dev                   - Run development mode with live reload"
-      echo "  build                 - Meta build task for CI (runs all checks and builds production version)"
-      echo "  build:frontend        - Build frontend only"
+      echo "  dev                         - Run development mode with live reload"
+      echo "  build                       - Meta build task for CI (runs all checks and builds production version)"
+      echo "  build:frontend              - Build frontend only"
       echo ""
       echo "🧪 Testing & Quality:"
-      echo "  test                  - Run all tests with race detector"
-      echo "  test:cover            - Run tests with coverage and generate coverage report files"
-      echo "  test:cover:view       - Open coverage HTML report in browser"
-      echo "  lint                  - Run backend and frontend linters"
-      echo "  lint:backend          - Run Go linter (golangci-lint)"
-      echo "  lint:frontend         - Run Biome lint on frontend code"
-      echo "  format:frontend       - Format frontend code with Biome"
+      echo "  test                        - Run all tests (backend and frontend)"
+      echo "  test:backend                - Run backend tests with race detector"
+      echo "  test:frontend               - Run frontend tests"
+      echo "  test:coverage               - Run all tests with coverage (backend and frontend)"
+      echo "  test:coverage:view          - Open all coverage reports in browser"
+      echo "  test:backend:coverage       - Run backend tests with coverage"
+      echo "  test:backend:coverage:view  - Open backend coverage report in browser"
+      echo "  test:frontend:coverage      - Run frontend tests with coverage"
+      echo "  test:frontend:coverage:view - Open frontend coverage report in browser"
+      echo "  lint                        - Run backend and frontend linters"
+      echo "  lint:backend                - Run Go linter (golangci-lint)"
+      echo "  lint:frontend               - Run Biome lint on frontend code"
+      echo "  format:frontend             - Format frontend code with Biome"
       echo ""
       echo "🎭 Mock Generation:"
-      echo "  mock:all              - Generate all mocks"
-      echo "  mock:storage          - Generate mocks for storage interfaces"
-      echo "  mock:usecase          - Generate mocks for usecase interfaces"
-      echo "  mock:trm              - Generate mocks for transaction manager"
+      echo "  mock:all                    - Generate all mocks"
+      echo "  mock:storage                - Generate mocks for storage interfaces"
+      echo "  mock:usecase                - Generate mocks for usecase interfaces"
+      echo "  mock:trm                    - Generate mocks for transaction manager"
       echo ""
       echo "🗃️ Database Migrations:"
-      echo "  migrate:create        - Create a new migration file"
+      echo "  migrate:create              - Create a new migration file"
       echo ""
       echo "🧹 Cleanup:"
-      echo "  clean                 - Clean all build artifacts"
-      echo "  clean:frontend        - Clean frontend build artifacts"
-      echo "  clean:backend         - Clean backend build artifacts"
-      echo "  clean:mocks           - Clean generated mocks"
+      echo "  clean                       - Clean all build artifacts"
+      echo "  clean:frontend              - Clean frontend build artifacts"
+      echo "  clean:backend               - Clean backend build artifacts"
+      echo "  clean:mocks                 - Clean generated mocks"
       echo ""
       echo "🚀 CI/CD:"
-      echo "  ci:setup              - Setup CI environment (alias for setup)"
-      echo "  ci:release            - Build release version for CI/CD with metadata"
-      echo "  ci:update-cask        - Generate updated Homebrew Cask formula"
+      echo "  ci:setup                    - Setup CI environment (alias for setup)"
+      echo "  ci:release                  - Build release version for CI/CD with metadata"
+      echo "  ci:update-cask              - Generate updated Homebrew Cask formula"
       echo ""
       echo "ℹ️  Information:"
-      echo "  version               - Show application version"
-      echo "  info                  - Show project information"
-      echo "  doctor                - Check development environment"
-      echo "  help                  - Show this help message"
+      echo "  version                     - Show application version"
+      echo "  info                        - Show project information"
+      echo "  doctor                      - Check development environment"
+      echo "  help                        - Show this help message"
       echo ""
       echo "For detailed task information: task --list-all"
       echo "To run a task: task <task-name>"

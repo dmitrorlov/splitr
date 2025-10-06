@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
-import { nextTick, ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 
 interface ConfirmDialogProps {
+  visible?: boolean
   title?: string
   message: string
   confirmText?: string
@@ -11,6 +12,7 @@ interface ConfirmDialogProps {
 }
 
 const props = withDefaults(defineProps<ConfirmDialogProps>(), {
+  visible: false,
   title: 'Confirm Action',
   confirmText: 'Confirm',
   cancelText: 'Cancel',
@@ -22,26 +24,24 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const isVisible = ref(false)
 const confirmButtonRef = ref<HTMLButtonElement>()
 
-const show = async () => {
-  isVisible.value = true
-  await nextTick()
-  confirmButtonRef.value?.focus()
-}
-
-const hide = () => {
-  isVisible.value = false
-}
+// Watch for visibility changes to focus the confirm button
+watch(
+  () => props.visible,
+  async visible => {
+    if (visible) {
+      await nextTick()
+      confirmButtonRef.value?.focus()
+    }
+  }
+)
 
 const handleConfirm = () => {
-  hide()
   emit('confirm')
 }
 
 const handleCancel = () => {
-  hide()
   emit('cancel')
 }
 
@@ -52,15 +52,12 @@ const handleKeydown = (event: KeyboardEvent) => {
     handleConfirm()
   }
 }
-
-// Expose the show method to parent components
-defineExpose({ show, hide })
 </script>
 
 <template>
     <Teleport to="body">
         <div
-            v-if="isVisible"
+            v-if="visible"
             class="fixed inset-0 z-50 flex items-center justify-center"
             @keydown="handleKeydown"
         >
